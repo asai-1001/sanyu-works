@@ -444,9 +444,6 @@ td.pos{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 }
 @media (orientation:portrait){html.phone .rotate{display:grid}}
 .mtask{display:none}
-/* 虫めがね */
-.loupe{position:absolute;z-index:9;border-radius:50%;pointer-events:none;border:3px solid var(--accent);box-shadow:0 .4em 1.4em rgba(0,0,0,.6)}
-.loupe[hidden]{display:none}
 /* スマホの「タップしてスタート」 */
 .pstart{position:fixed;inset:0;z-index:60;display:grid;place-items:center;text-align:center;padding:1em;background:radial-gradient(circle at 50% 40%,rgba(30,44,60,.97),rgba(5,8,12,.98));color:var(--ink-2,#eef3f7);font-size:15px;cursor:pointer;-webkit-user-select:none;user-select:none}
 .pstart[hidden]{display:none}
@@ -454,6 +451,7 @@ td.pos{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 .pstart b{display:block;font-size:22px;letter-spacing:.06em;color:var(--accent-2)}
 .ps-go{margin:.7em 0 .5em;font-size:17px;font-weight:700;animation:psgo 1.4s ease-in-out infinite}
 .pstart small{display:block;color:#b9c4cf;line-height:1.6;font-size:12.5px}
+.pstart .ps-ver{margin-top:.8em;font-size:11px;opacity:.6}
 .pstart .btn{margin-top:.6em;font-size:14px}
 @keyframes psgo{50%{opacity:.45}}
 .mtask-btn{display:none}

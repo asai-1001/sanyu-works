@@ -139,11 +139,15 @@ function setTimer(v,label){const el=$('hudTimer');if(v==null){el.hidden=true;uiC
 /* ---------- スマートフォン・タブレット（指で操作する端末） ----------
    指で操作する端末では、画面の下の説明から「キーボード」「マウス」の話を外し、
    「クリック」を「タップ」、「ホイール」を「2本の指」に言いかえる。 */
-const TOUCH=(()=>{try{if(/[?&]touch\b/.test(location.search))return true;return matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches}catch(e){return false}})();
+/* スマートフォン：指で操作できて、画面の短い辺が 600px 以下（または スマホのブラウザ）。?phone でスマホ版、?pc でパソコン版にできる */
+const QS=location.search;
+const PHONE=!/[?&]pc\b/.test(QS)&&(/[?&]phone\b/.test(QS)||(()=>{try{
+  const short=Math.min(screen.width||9999,screen.height||9999)<=600;
+  const touch=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window)||matchMedia('(pointer:coarse)').matches;
+  return short&&(touch||/Android|iPhone|iPod|Mobile/i.test(navigator.userAgent))}catch(e){return false}})());
+const TOUCH=PHONE||(()=>{try{if(/[?&]touch\b/.test(QS))return true;return matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches}catch(e){return false}})();
 if(TOUCH)document.documentElement.classList.add('touch');
-/* スマートフォン（画面の短い辺が 600px 以下の、指で操作する端末）。タブレットはパソコンと同じ画面のまま */
-const PHONE=TOUCH&&(/[?&]phone\b/.test(location.search)||Math.min(screen.width,screen.height)<=600);
-if(PHONE)document.documentElement.classList.add('phone');
+if(PHONE)document.documentElement.classList.add('phone');   /* タブレットはパソコンと同じ画面のまま */
 const IOS=/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const TOUCH_MAP={
   'Enterキー（または画面のクリック）で会話が進みます。':'画面をタップすると会話が進みます。',
@@ -255,14 +259,14 @@ const idleSec=()=>(performance.now()-lastInput)/1000;
 function busy(){return !!dlg||panelOpen()||!!SW.tutActive||!!SW.paused||!!SW.cardOpen||!!SW.menuOpen}
 function toCanvas(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
 /* 指2本：ピンチで拡大・縮小。スマホは画面そのものを拡大・移動、タブレットはマウスのホイールと同じ扱い */
-const touches=new Map();let pinch=null,lp=null;
+const touches=new Map();let pinch=null;
 const tDist=()=>{const[a,b]=[...touches.values()];return Math.hypot(a.x-b.x,a.y-b.y)};
 const phoneLand=()=>PHONE&&isLand();
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')touches.set(e.pointerId,{x:e.clientX,y:e.clientY,e});
   const sc=SW.scene;
   if(touches.size>=2){e.preventDefault();
-    if(pointer.down){pointer.down=false;loupeHide();lp=null;const f=[...touches.values()][0];
+    if(pointer.down){pointer.down=false;const f=[...touches.values()][0];
       if(sc){if(sc.onCancel)sc.onCancel(toCanvas(f.e));else if(sc.onUp)sc.onUp(toCanvas(f.e))}}
     if(phoneLand()){if(!gest)gestStart()}
     else if(!pinch&&sc&&sc.onWheel&&!busy()&&!dlg)pinch={d:tDist()};
@@ -270,7 +274,7 @@ cv.addEventListener('pointerdown',e=>{
   if(dlg){dlgAdvance();e.preventDefault();return}
   if(busy()||!sc||!sc.onDown)return;
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  pointer.down=true;lp={x:e.clientX,y:e.clientY,moved:false,touch:e.pointerType==='touch'};sc.onDown(toCanvas(e));e.preventDefault();
+  pointer.down=true;sc.onDown(toCanvas(e));e.preventDefault();
 });
 cv.addEventListener('pointermove',e=>{
   if(touches.has(e.pointerId))touches.set(e.pointerId,{x:e.clientX,y:e.clientY,e});
@@ -279,14 +283,10 @@ cv.addEventListener('pointermove',e=>{
   if(pinch){if(touches.size>=2&&sc&&sc.onWheel&&!busy()){const d=tDist(),r=d/Math.max(1,pinch.d);
       if(r>1.1){sc.onWheel(-1);pinch.d=d}else if(r<.9){sc.onWheel(1);pinch.d=d}}
     return}
-  if(sc&&sc.onMove&&!busy())sc.onMove(toCanvas(e),pointer.down);
-  /* スマホ：指でなぞっているときは虫めがねを出す（押しつづけるだけのボタンでは出さない） */
-  if(PHONE&&lp&&lp.touch&&pointer.down){if(!lp.moved&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>10)lp.moved=true;
-    if(lp.moved&&!(sc&&sc.loupeOK&&!sc.loupeOK()))loupeShow(e.clientX,e.clientY);else loupeHide()}});
+  if(sc&&sc.onMove&&!busy())sc.onMove(toCanvas(e),pointer.down)});
 const pUp=e=>{touches.delete(e.pointerId);
   if(gest){if(touches.size===0){gest=null;phoneBacking()}return}
   if(pinch){if(touches.size===0)pinch=null;return}
-  loupeHide();lp=null;
   if(!pointer.down)return;pointer.down=false;const sc=SW.scene;if(sc&&sc.onUp)sc.onUp(toCanvas(e))};
 cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pUp);
 cv.addEventListener('wheel',e=>{const sc=SW.scene;if(sc&&sc.onWheel&&!busy()){e.preventDefault();sc.onWheel(e.deltaY)}},{passive:false});
@@ -353,7 +353,6 @@ const gateScene={evening:false,mascot:false,draw(t){
 /* =====================================================================
    スマートフォン専用の画面（Ver. 2.8）… PHONE のときだけ動く。パソコンには関係しない
    ・ゲーム画面は画面いっぱい。2本の指で広げる・つまむ・動かすと、拡大・縮小・移動
-   ・指でなぞっている場所は「虫めがね」で指の上に大きく表示
    ・最初に「タップしてスタート」で全画面・横向きにする
    ===================================================================== */
 const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0,mode:'fill'};   /* mode: fill=画面いっぱい  all=全体  free=指で動かした */
@@ -408,26 +407,6 @@ function gestMove(){if(touches.size<2)return;const p=gestPts(),g=gest;
   /* はじめの2本指の真ん中にあった場所が、いまの真ん中に来るように */
   VIEW.mode='free';VIEW.z=z;VIEW.tx=p.mx-(g.mx-g.tx)*z/g.z0;VIEW.ty=p.my-(g.my-g.ty)*z/g.z0;viewClamp();viewApply();
   if(Math.abs(z-g.z0)>.03||Math.hypot(p.mx-g.mx,p.my-g.my)>6)g.used=true}
-/* 虫めがね */
-let loupe=null,lctx=null,lpos=null,lraf=0;const LD=128;
-function loupeInit(){loupe=document.createElement('canvas');loupe.className='loupe';loupe.hidden=true;$('screen').append(loupe);lctx=loupe.getContext('2d')}
-function loupeShow(fx,fy){if(!loupe)return;lpos={x:fx,y:fy};if(loupe.hidden){loupe.hidden=false;const tick=()=>{if(!lpos)return;loupeDraw();lraf=requestAnimationFrame(tick)};lraf=requestAnimationFrame(tick)}}
-function loupeHide(){lpos=null;cancelAnimationFrame(lraf);if(loupe)loupe.hidden=true}
-function loupeDraw(){
-  const dpr=Math.min(window.devicePixelRatio||1,3),D=Math.round(LD*dpr);if(loupe.width!==D){loupe.width=loupe.height=D;loupe.style.width=loupe.style.height=LD+'px'}
-  const r=cv.getBoundingClientRect(),sr=$('screen').getBoundingClientRect();
-  const bx=(lpos.x-r.left)/r.width*cv.width,by=(lpos.y-r.top)/r.height*cv.height,src=LD/2*(cv.width/r.width);
-  lctx.save();lctx.clearRect(0,0,D,D);lctx.beginPath();lctx.arc(D/2,D/2,D/2-2*dpr,0,Math.PI*2);lctx.clip();
-  lctx.fillStyle='#000';lctx.fillRect(0,0,D,D);lctx.drawImage(cv,bx-src/2,by-src/2,src,src,0,0,D,D);
-  lctx.strokeStyle='rgba(255,255,255,.9)';lctx.lineWidth=1.5*dpr;lctx.beginPath();
-  lctx.moveTo(D/2-10*dpr,D/2);lctx.lineTo(D/2-3*dpr,D/2);lctx.moveTo(D/2+3*dpr,D/2);lctx.lineTo(D/2+10*dpr,D/2);
-  lctx.moveTo(D/2,D/2-10*dpr);lctx.lineTo(D/2,D/2-3*dpr);lctx.moveTo(D/2,D/2+3*dpr);lctx.lineTo(D/2,D/2+10*dpr);lctx.stroke();lctx.restore();
-  /* 置き場所：指の上。上が足りなければ、指の横（画面の内側） */
-  let cx=lpos.x-sr.left,cy=lpos.y-sr.top-LD*.95;
-  if(cy-LD/2<4){cy=clamp(lpos.y-sr.top,LD/2+4,sr.height-LD/2-4);cx+=(cx>sr.width/2?-1:1)*LD*1.05}
-  cx=clamp(cx,LD/2+4,sr.width-LD/2-4);
-  loupe.style.left=(cx-LD/2)+'px';loupe.style.top=(cy-LD/2)+'px';
-}
 /* 指の位置からどれだけ上を「ねらう点」にするか（CADの穴あけなど、細かい場所をえらぶとき） */
 function fingerOff(){const r=cv.getBoundingClientRect();return 34/(r.width/W||1)}
 /* 全画面 */
@@ -443,7 +422,7 @@ function phoneStart(mode){
   pstartMode=mode;const canFS=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
   pstart.innerHTML=mode==='first'
     ?`<div class="ps-in"><img src="${asset('img/sanpopo.png')}" alt=""><b>三友ワークス</b><p class="ps-go">画面をタップしてスタート</p>
-      <small>${canFS?'全画面・横向きで遊びます。':(IOS&&!standalone()?'iPhone は、共有ボタン →「ホーム画面に追加」から開くと、全画面で遊べます。':'スマホを横向きにして遊んでね。')}<br>2本の指で広げると、画面を拡大できます。</small></div>`
+      <small>${canFS?'全画面・横向きで遊びます。':(IOS&&!standalone()?'iPhone は、共有ボタン →「ホーム画面に追加」から開くと、全画面で遊べます。':'スマホを横向きにして遊んでね。')}<br>2本の指で広げると、画面を拡大できます。</small><small class="ps-ver">スマホ版　Ver. ${SW.VERSION||''}</small></div>`
     :`<div class="ps-in"><p class="ps-go">タップして全画面にもどる</p><button type="button" class="btn ghost" data-a="keep">このまま続ける</button></div>`;
   pstart.hidden=false;
 }
@@ -462,7 +441,6 @@ function pmSync(){if(!pm)return;
 function pmOpen(){pmSync();pm.hidden=false;SW.menuOpen=true;mtHide()}
 function pmClose(){pm.hidden=true;SW.menuOpen=false}
 function phoneUI(){
-  loupeInit();
   pmBtn=document.createElement('button');pmBtn.type='button';pmBtn.className='pm-btn';pmBtn.setAttribute('aria-label','メニュー');
   pmBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   pm=document.createElement('div');pm.className='pm';pm.hidden=true;pm.setAttribute('role','dialog');pm.setAttribute('aria-label','メニュー');
@@ -491,6 +469,7 @@ function phoneUI(){
   /* パネル（タイトル・結果など）や説明が出ているあいだは、☰ をかくす（パネルには自分のボタンがある） */
   setInterval(()=>{const hide=panelOpen()||!!SW.tutActive||!!SW.cardOpen||(pstart&&!pstart.hidden);pmBtn.hidden=hide;if(hide&&!pm.hidden)pmClose()},250);
   phoneStart('first');
+  window.addEventListener('load',()=>{const v=pstart&&pstart.querySelector('.ps-ver');if(v)v.textContent='スマホ版　Ver. '+(SW.VERSION||'')});
   const onFS=()=>{if(!fsEl()&&pstart&&pstart.hidden&&!standalone()&&(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))phoneStart('back')};
   document.addEventListener('fullscreenchange',onFS);document.addEventListener('webkitfullscreenchange',onFS);
   /* スマホでは、ページそのものの拡大（ダブルタップ・ピンチ）を止める */

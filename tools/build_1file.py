@@ -32,7 +32,7 @@ html = html.replace('<link rel="manifest" href="manifest.webmanifest">\n', '')  
 # 1) CSS（フォントも埋め込む）
 css = rd('css/style.css')
 css = re.sub(r'url\("\.\./fonts/([^"]+)"\)', lambda m: 'url("%s")' % data_uri('fonts/' + m.group(1)), css)
-html = html.replace('<link rel="stylesheet" href="css/style.css">', '<style>\n' + css + '\n</style>')
+html = re.sub(r'<link rel="stylesheet" href="css/style\.css(\?[^"]*)?">', lambda m: '<style>\n' + css + '\n</style>', html)
 
 # 2) HTML の中の画像
 html = re.sub(r'(src|href)="(img/[^"]+\.png)"', lambda m: '%s="%s"' % (m.group(1), data_uri(m.group(2))), html)
@@ -51,6 +51,7 @@ def inline(m):
     if '</script' in src.lower():
         raise SystemExit('script tag inside ' + m.group(1))
     return '<script>/* ' + m.group(1) + ' */\n' + src + '\n</script>'
+html = re.sub(r'<script src="(js/[^"?]+)\?[^"]*"></script>', r'<script src="\1"></script>', html)   # ?v=... をとる
 html = html.replace('<script src="js/assets.js"></script>', '<script>' + emb_js + '</script>\n<script src="js/assets.js"></script>')
 html = re.sub(r'<script src="(js/[^"]+)"></script>', inline, html)
 

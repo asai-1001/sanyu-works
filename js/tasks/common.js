@@ -78,7 +78,6 @@ function make(def){
     if(pi>=0&&g.run&&!g.done&&hit(p)===pi&&g.items[pi])fire(g.items[pi])};
   /* スマホ：2本目の指が来たとき（画面の拡大）。とちゅうの操作は「決定しないで」やめる。cancel がない作業は up と同じ */
   g.onCancel=p=>{pend=-1;if(def.cancel){g.ptr=false;g.ptr2=false;rep=null;if(g.run&&!g.done)def.cancel(g)}else g.onUp(p)};
-  g.loupeOK=()=>def.loupe?!!def.loupe(g):true;
   g.onKey=(k,rep)=>{if(!g.run||g.done)return;if((k==='Enter'||k===' ')&&performance.now()-t0<500)return;if(def.key&&def.key(g,k,rep))return;
     if(k==='Enter'||k===' '){fire(g.items[g.fi]);return}
     if(/^[1-9]$/.test(k)){const i=g.items.findIndex(it=>String(it.n)===k&&!it.off);if(i>=0){g.fi=i;fire(g.items[i])}return}

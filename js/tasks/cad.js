@@ -98,7 +98,7 @@ function CadGame(){
     draw(g,t){drawAll(g,t)},
     key(g,k,rep){return onKey(g,k,rep)},
     ptr(g,type,p,down){return onPtr(g,type,p,down)},
-    cancel(g){onCancel(g)},loupe(){return step===ST.ELEC},
+    cancel(g){onCancel(g)},
     wheel(g,d){if(step<ST.ELEC&&!locked()){cam.zoom=S.clamp(cam.zoom*(d>0?1.1:.91),.6,1.7);camT=null}}
   });
 
