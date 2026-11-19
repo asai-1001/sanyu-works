@@ -29,9 +29,6 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;overflow:hidden}
-html,body{overscroll-behavior:none;touch-action:manipulation}   /* スマートフォン：引っぱって再読み込み・ダブルタップ拡大を止める */
-.screen{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.screen textarea,.screen input{-webkit-user-select:text;user-select:text}
 body{background:
     linear-gradient(rgba(95,208,255,.035) 1px,transparent 1px) 0 0/32px 32px,
     linear-gradient(90deg,rgba(95,208,255,.035) 1px,transparent 1px) 0 0/32px 32px,
@@ -408,36 +405,49 @@ td.pos{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
   #app{padding-block:2px}
   .hint{font-size:.8em}
 }
-/* ---------- スマートフォンを横に持ったとき（Ver. 2.6） ----------
-   高さが足りないので、上の帯と下の説明を「右の細い列」にまとめ、
-   ゲーム画面を画面の高さいっぱいまで大きくする。 */
+/* ---------- スマートフォンを横に持ったとき（Ver. 2.7） ----------
+   指で操作する端末（html.touch）だけに使う。パソコンの見た目は変えない。
+   ・ゲーム画面を画面の高さいっぱいに表示する
+   ・時計・残り時間・★は左の余白、ボタンは右の余白に置く（余白の幅 --side は fit() が計算）
+   ・「いまやること」と操作の説明は、変わったときだけ画面の下に数秒出す（左の「やること」でもう一度見られる） */
 @media (orientation:landscape) and (max-height:520px){
-  body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-  #app{display:grid;grid-template-columns:minmax(0,1fr) clamp(124px,19vw,210px);grid-template-rows:auto minmax(0,1fr);padding:0;max-width:none}
-  .stagewrap{grid-column:1;grid-row:1 / 3;border:0;background:#000}
-  .hud{grid-column:2;grid-row:1;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;gap:5px;padding:6px 6px 4px;border:0;border-left:1px solid var(--line);border-radius:0;min-height:0;font-size:12px;background:#0d141d}
-  .hb-l{order:1;gap:6px;justify-content:space-between}
-  .hb-r{order:2;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-  #hudTimer,#hudScore{grid-column:1 / -1;text-align:center}
-  #hudTimer{padding:.05em .4em}
-  .hbtn{width:100%;height:32px;border-radius:7px}
-  .hbtn svg{width:17px;height:17px}
-  #tag{order:3;flex:none;text-align:left;font-size:11px;line-height:1.45;padding:4px 5px;border-radius:6px;background:rgba(246,194,28,.08)}
-  #tag:empty{display:none}
-  .console{grid-column:2;grid-row:2;display:block;min-height:0;overflow-y:auto;padding:4px 6px 8px;border:0;border-left:1px solid var(--line);border-radius:0;font-size:11px;background:#0d141d;overscroll-behavior:contain}
-  .console:has(.ctrls:not(:empty)) .hint{display:block}
-  .hint{font-size:11px;line-height:1.5;color:#c3ced8}
-  .hint:not(:empty)::before{display:none}
-  .ctrls{margin-top:6px;gap:4px}
-  .ctrls .cbtn{flex:1 1 40%;min-height:34px;padding:.2em .4em;font-size:12px}
-  #steps,#hudPlace{display:none}
-  .screen > *{font-size:clamp(8.5px,1.75cqw,28px)}
+  html.touch body{padding:0}
+  html.touch #app{display:block;position:relative;height:100%;max-width:none;padding:0}
+  html.touch .stagewrap{position:absolute;inset:0;border:0;background:#000}
+  html.touch .hud{position:absolute;inset:0;display:block;pointer-events:none;background:none;border:0;border-radius:0;padding:0;min-height:0;z-index:12;font-size:12px}
+  html.touch .hud button,html.touch .hud .mside{pointer-events:auto}
+  html.touch .hb-l{position:absolute;left:0;top:0;bottom:0;width:var(--side,0px);padding:10px 4px 10px max(4px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;align-items:center;gap:8px;flex-wrap:nowrap;text-align:center}
+  html.touch .hb-r{position:absolute;right:0;top:0;bottom:0;width:var(--side,0px);padding:10px max(4px,env(safe-area-inset-right,0px)) 10px 4px;display:flex;flex-direction:column;align-items:center;gap:9px;flex-wrap:nowrap}
+  html.touch #hudClock{font-size:12px;line-height:1.2;white-space:nowrap}
+  html.touch #hudTimer{order:-1;font-size:13px;line-height:1.25;padding:.25em .35em;border-radius:8px;white-space:normal;text-align:center;min-width:3.6em}
+  html.touch #hudScore{font-size:12px;white-space:nowrap}
+  html.touch .mside{display:flex;flex-direction:column;align-items:center;gap:8px}
+  html.touch .hbtn{width:44px;height:44px;border-radius:50%;background:rgba(26,37,50,.92)}
+  html.touch .hbtn svg{width:20px;height:20px}
+  html.touch .mtask-btn{display:block;font:inherit;font-size:12px;font-weight:700;line-height:1.25;padding:.55em .5em;min-width:44px;border-radius:10px;border:1px solid rgba(246,194,28,.6);background:rgba(246,194,28,.12);color:var(--accent-2)}
+  html.touch .mtask-btn[hidden]{display:none}
+  html.touch #tag,html.touch #steps,html.touch #hudPlace{display:none}
+  html.touch .console{display:none}
+  /* 余白がせまい端末（画面が16:9に近い）では、ボタンなどをゲーム画面の上に小さく重ねる */
+  html.touch.thin .hb-l,html.touch.thin .hb-r{bottom:auto;width:auto;flex-direction:row;padding:6px;gap:6px;background:rgba(8,12,18,.72);border-radius:0 0 12px 0}
+  html.touch.thin .hb-r{border-radius:0 0 0 12px}
+  html.touch.thin .mside{flex-direction:row}
+  html.touch.thin .hbtn{width:36px;height:36px}
+  html.touch .screen > *{font-size:clamp(8.5px,1.75cqw,28px)}
 }
-/* とても小さい画面（横幅が600px未満）では、右の列をさらに細く */
-@media (orientation:landscape) and (max-height:520px) and (max-width:640px){
-  #app{grid-template-columns:minmax(0,1fr) 108px}
-  .hb-r{grid-template-columns:repeat(2,1fr)}
+/* 「いまやること」カード（指で操作する端末だけ） */
+.mtask{display:none}
+@media (orientation:landscape) and (max-height:520px){
+html.touch .mtask{display:block;position:absolute;left:50%;bottom:.8em;transform:translateX(-50%);width:min(90%,34em);z-index:5;pointer-events:auto;cursor:pointer;padding:.55em .9em .6em;background:rgba(8,12,18,.88);border:1px solid rgba(246,194,28,.65);border-left-width:4px;border-radius:10px;box-shadow:0 .4em 1.2em rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
+html.touch .mtask.off{opacity:0;transform:translate(-50%,.6em);pointer-events:none}
+html.touch .mtask b{display:block;color:var(--accent-2);font-size:1.05em;line-height:1.45}
+html.touch .mtask p{margin:.2em 0 0;font-size:.92em;line-height:1.5;color:#dbe3ea}
+html.touch .mtask p:empty{display:none}
 }
+.mtask-btn{display:none}
+html.touch,html.touch body{overscroll-behavior:none;touch-action:manipulation}   /* 引っぱって再読み込み・ダブルタップ拡大を止める */
+html.touch .screen{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.touch .screen textarea,html.touch .screen input{-webkit-user-select:text;user-select:text}
 .tch{display:none}
 .touch .kbd{display:none!important}
 .touch .tch{display:revert}

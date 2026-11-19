@@ -56,7 +56,9 @@ function make(def){
     if(rep){if(!g.ptr2)rep=null;else{rep.t-=dt;if(rep.t<=0){rep.t=rep.it.rate||.085;if(rep.it.on&&!rep.it.off)rep.it.on(rep.it)}}}
     if(def.update)def.update(g,dt)};
   g.draw=t=>{const c=C();c.save();if(g.shake>0&&!S.reduceMotion)c.translate(Math.sin(g.T*70)*g.shake*3,0);def.draw(g,t);c.restore()};
-  const hit=p=>g.items.findIndex(it=>!it.off&&p.x>=it.x&&p.x<=it.x+it.w&&p.y>=it.y&&p.y<=it.y+it.h);
+  const hit0=(p,m)=>g.items.findIndex(it=>!it.off&&p.x>=it.x-m&&p.x<=it.x+it.w+m&&p.y>=it.y-m&&p.y<=it.y+it.h+m);
+  /* 指で操作する端末では、少し外れても近くのボタンを押したことにする（パソコンは今までどおり） */
+  const hit=p=>{const i=hit0(p,0);if(i>=0||!S.TOUCH)return i;return hit0(p,4)};
   /* スタート直後の0.5秒は決定を受けつけない（会話を Enter 連打で進めた勢いで、まちがって選ばないように） */
   let t0=0;
   const fire=it=>{if(!it||it.off||!g.run||g.done)return;if(it.hold)return;if(performance.now()-t0<500)return;S.sfx.click();it.on&&it.on(it)};

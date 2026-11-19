@@ -177,8 +177,20 @@ function touchText(s){
     .replace(/[^。]*(矢印キー|PageUp)[^。]*。/g,'').replace(/Esc か/g,'')
     .replace(/ホイールで拡大/g,'2本の指で拡大').replace(/ダブルクリック/g,'ダブルタップ').replace(/クリック/g,'タップ');
 }
-const setTag=s=>setText('tag',touchText(s||''));
-const setHint=s=>setText('hint',touchText(s||''));
+/* スマートフォン：「いまやること」と説明は、画面の下のカードに数秒だけ出す */
+let mtTag='',mtHint='',mtTO=0,mtPend=false,mtEl=null,mtBtn=null;
+const mtBusy=()=>!!dlg||panelOpen()||!!SW.tutActive||!!SW.paused||!!SW.cardOpen;
+function mtHide(){if(mtEl){clearTimeout(mtTO);mtEl.classList.add('off')}}
+function mtShow(ms){
+  if(!mtEl||!mtTag)return;
+  mtEl.querySelector('b').textContent=mtTag;mtEl.querySelector('p').textContent=mtHint;
+  if(mtBusy()){mtPend=true;return}
+  mtPend=false;mtEl.classList.remove('off');clearTimeout(mtTO);mtTO=setTimeout(mtHide,ms||4500);
+}
+const setTag=s=>{const t=touchText(s||'');setText('tag',t);
+  if(!TOUCH||t===mtTag)return;mtTag=t;if(mtBtn)mtBtn.hidden=!t;if(t)mtShow();else{mtPend=false;mtHide()}};
+const setHint=s=>{const t=touchText(s||'');setText('hint',t);
+  if(!TOUCH)return;mtHint=t;if(mtEl)mtEl.querySelector('p').textContent=t};
 let flashTO=0;
 function flash(txt,kind){const f=$('flash');f.textContent=txt;f.className='flash '+(kind||'');f.hidden=false;void f.offsetWidth;f.classList.add('go');clearTimeout(flashTO);flashTO=setTimeout(()=>{f.hidden=true},1150)}
 let toastTO=0;
@@ -323,8 +335,22 @@ const gateScene={evening:false,mascot:false,draw(t){
 
 /* ---------- 画面を16:9でウィンドウに収める（スクロールなし）＋高精細化 ---------- */
 function fit(){const wrap=$('stagewrap'),sc=$('screen');const w=wrap.clientWidth,h=wrap.clientHeight;const sw=Math.max(240,Math.min(w,h*16/9));sc.style.width=sw+'px';sc.style.height=(sw*9/16)+'px';
+  if(TOUCH){const side=Math.max(0,(w-sw)/2);document.documentElement.style.setProperty('--side',side+'px');document.documentElement.classList.toggle('thin',side<56)}
   const dpr=Math.min(window.devicePixelRatio||1,3);const bw=Math.round(clamp(sw*dpr,640,2560)/16)*16,bh=bw*9/16;
   if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh}SC=bw/W}
+if(TOUCH){
+  /* 時計・残り時間・★を左の列へ、「やること」ボタンを追加。説明のカードを作る */
+  const ms=document.createElement('div');ms.className='mside';ms.append($('hudTimer'),$('hudScore'));
+  mtBtn=document.createElement('button');mtBtn.type='button';mtBtn.className='mtask-btn';mtBtn.textContent='やること';mtBtn.hidden=true;
+  mtBtn.setAttribute('aria-label','いまやることと操作の説明を見る');
+  mtBtn.addEventListener('click',()=>{if(mtEl&&!mtEl.classList.contains('off'))mtHide();else mtShow(8000)});
+  ms.append(mtBtn);document.querySelector('.hb-l').append(ms);
+  mtEl=document.createElement('div');mtEl.className='mtask off';mtEl.setAttribute('aria-live','polite');mtEl.innerHTML='<b></b><p></p>';$('screen').append(mtEl);
+  /* カードをタップすると閉じる。ゲーム画面をさわったときも閉じる（下にあるボタンが見えるように） */
+  mtEl.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();mtHide()});
+  cv.addEventListener('pointerdown',()=>{if(!mtPend)mtHide()},true);
+  setInterval(()=>{if(mtBusy()){if(!mtEl.classList.contains('off')){mtHide();mtPend=true}}else if(mtPend)mtShow()},300);
+}
 window.addEventListener('resize',fit);if(window.ResizeObserver)new ResizeObserver(fit).observe($('stagewrap'));fit();
 try{if(document.fonts){document.fonts.load('12px "SWSans"').catch(()=>{});document.fonts.load('700 12px "SWSans"').catch(()=>{})}}catch(e){}
 

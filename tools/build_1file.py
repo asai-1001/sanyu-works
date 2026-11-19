@@ -27,6 +27,7 @@ def data_uri(p):
         return 'data:%s;base64,%s' % (MIME[ext], base64.b64encode(f.read()).decode('ascii'))
 
 html = rd('index.html')
+html = html.replace('<link rel="manifest" href="manifest.webmanifest">\n', '')   # 1ファイル版では使わない
 
 # 1) CSS（フォントも埋め込む）
 css = rd('css/style.css')
@@ -40,7 +41,7 @@ html = re.sub(r'(src|href)="(img/[^"]+\.png)"', lambda m: '%s="%s"' % (m.group(1
 emb = {}
 for d in ('img', 'voice'):
     for n in sorted(os.listdir(os.path.join(ROOT, d))):
-        if os.path.splitext(n)[1].lower() in MIME:
+        if os.path.splitext(n)[1].lower() in MIME and not n.startswith('icon-'):
             emb[d + '/' + n] = data_uri(d + '/' + n)
 emb_js = 'window.SW_EMBED={\n' + ',\n'.join('%r:%r' % (k, v) for k, v in emb.items()) + '};'
 
