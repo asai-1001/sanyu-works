@@ -7,7 +7,7 @@
 (()=>{
 'use strict';
 const S=SW,D=S.DATA,T=S.T,esc=S.esc;
-S.VERSION='2.8.0';
+S.VERSION='2.9.0';
 const $=S.$;
 let curStage=null,curGame=null,mode=null,started=false;
 const results={};                                  /* results[作業id] = {clear,stars,used,miss} */

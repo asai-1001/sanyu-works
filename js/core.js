@@ -201,7 +201,7 @@ const setHint=s=>{const t=touchText(s||'');setText('hint',t);
 let flashTO=0;
 function flash(txt,kind){const f=$('flash');f.textContent=txt;f.className='flash '+(kind||'');f.hidden=false;void f.offsetWidth;f.classList.add('go');clearTimeout(flashTO);flashTO=setTimeout(()=>{f.hidden=true},1150)}
 let toastTO=0;
-function toast(text,kind,ms){const t=$('toast');$('toastText').textContent=touchText(text);t.className='toast '+(kind||'');t.hidden=false;clearTimeout(toastTO);toastTO=setTimeout(()=>{t.hidden=true},ms||4500)}
+function toast(text,kind,ms){if(PHONE)mtHide();const t=$('toast');$('toastText').textContent=touchText(text);t.className='toast '+(kind||'');t.hidden=false;clearTimeout(toastTO);toastTO=setTimeout(()=>{t.hidden=true},ms||4500)}
 function hideToast(){clearTimeout(toastTO);$('toast').hidden=true}
 function btn(label,cls,onClick,key){const b=document.createElement('button');b.type='button';b.className='cbtn '+(cls||'');b.textContent=label;if(key)b.dataset.k=key;if(onClick)b.addEventListener('click',()=>{if(!b.disabled)onClick()});return b}
 function sep(){const s=document.createElement('span');s.className='sep';return s}
@@ -252,7 +252,7 @@ const keys=new Set(),pointer={down:false};
 let lastInput=performance.now();const touchInput=()=>{lastInput=performance.now()};
 ['pointerdown','keydown','wheel','touchstart'].forEach(ev=>window.addEventListener(ev,touchInput,{passive:true,capture:true}));
 const idleSec=()=>(performance.now()-lastInput)/1000;
-function busy(){return !!dlg||panelOpen()||!!SW.tutActive||!!SW.paused||!!SW.cardOpen}
+function busy(){return !!dlg||panelOpen()||!!SW.tutActive||!!SW.paused||!!SW.cardOpen||!!SW.menuOpen}
 function toCanvas(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
 /* 指2本：ピンチで拡大・縮小。スマホは画面そのものを拡大・移動、タブレットはマウスのホイールと同じ扱い */
 const touches=new Map();let pinch=null,lp=null;
@@ -356,19 +356,24 @@ const gateScene={evening:false,mascot:false,draw(t){
    ・指でなぞっている場所は「虫めがね」で指の上に大きく表示
    ・最初に「タップしてスタート」で全画面・横向きにする
    ===================================================================== */
-const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0};
+const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0,mode:'fill'};   /* mode: fill=画面いっぱい  all=全体  free=指で動かした */
 const ZMAX=3;
 const isLand=()=>innerWidth>=innerHeight;
 function phoneFit(wrap,sc,w,h){
   sc.style.width=w+'px';sc.style.height=h+'px';
-  /* 左右に、ボタンの列のぶん（最低 50px）をあける */
-  const cw=Math.min(w-100,h*16/9),ch=cw*9/16;VIEW.w=w;VIEW.h=h;VIEW.cw=cw;VIEW.ch=ch;
+  const cw=Math.min(w,h*16/9),ch=cw*9/16;VIEW.w=w;VIEW.h=h;VIEW.cw=cw;VIEW.ch=ch;
   cv.style.width=cw+'px';cv.style.height=ch+'px';cv.style.transformOrigin='0 0';
-  const r=wrap.getBoundingClientRect(),side=Math.max(0,(w-cw)/2),root=document.documentElement.style;
-  root.setProperty('--sideL',(r.left+side)+'px');root.setProperty('--sideR',(innerWidth-r.right+side)+'px');
-  root.setProperty('--pfs',Math.max(9,Math.min(h*.0288*1.15,w*.0166)).toFixed(2)+'px');
+  document.documentElement.style.setProperty('--pfs',Math.max(9,Math.min(h*.0288*1.15,w*.0166)).toFixed(2)+'px');
+  cancelAnimationFrame(VIEW.anim);
+  if(VIEW.mode!=='free')Object.assign(VIEW,viewTarget(VIEW.mode));
   viewClamp();viewApply();phoneBacking();
 }
+/* 「画面いっぱい」：横幅いっぱいまで大きくする。はみ出すのは上下あわせて最大 20（ゲーム画面の高さ 180 のうち）。
+   上の見出しの帯を多めに、下を少なめに隠す（下にはボタンが多いので） */
+function viewTarget(mode){const v=VIEW;
+  if(mode==='all')return{z:1,tx:(v.w-v.cw)/2,ty:(v.h-v.ch)/2};
+  const z=Math.max(1,Math.min(v.w/v.cw,180/160)),H2=v.ch*z,hid=Math.max(0,H2-v.h);
+  return{z,tx:(v.w-v.cw*z)/2,ty:H2<=v.h?(v.h-H2)/2:-hid*13/20}}
 function phoneUnfit(sc){cv.style.width=cv.style.height=cv.style.transform='';VIEW.z=1;document.documentElement.classList.remove('zoomed')}
 function phoneBacking(){
   const dpr=Math.min(window.devicePixelRatio||1,3);
@@ -384,14 +389,15 @@ function viewApply(){
   cv.style.transform=`translate(${VIEW.tx.toFixed(1)}px,${VIEW.ty.toFixed(1)}px) scale(${VIEW.z.toFixed(4)})`;
   document.documentElement.classList.toggle('zoomed',VIEW.z>1.02);
 }
-/* 拡大率 z にして、画面の点 (sx,sy) にある場所を動かさない */
-function viewZoomAt(z,sx,sy){const v=VIEW,z0=v.z;z=clamp(z,1,ZMAX);v.tx=sx-(sx-v.tx)*z/z0;v.ty=sy-(sy-v.ty)*z/z0;v.z=z;viewClamp();viewApply()}
-function viewReset(){
-  const v=VIEW,z0=v.z,x0=v.tx,y0=v.ty,t0=performance.now();cancelAnimationFrame(v.anim);
-  const step=t=>{const k=Math.min(1,(t-t0)/220),e=1-Math.pow(1-k,3);v.z=z0+(1-z0)*e;v.tx=x0+((v.w-v.cw)/2-x0)*e;v.ty=y0+((v.h-v.ch)/2-y0)*e;viewClamp();viewApply();
+function viewSet(mode){
+  const v=VIEW,a={z:v.z,tx:v.tx,ty:v.ty},b=viewTarget(mode),t0=performance.now();v.mode=mode;cancelAnimationFrame(v.anim);
+  const step=t=>{const k=Math.min(1,(t-t0)/240),e=1-Math.pow(1-k,3);v.z=a.z+(b.z-a.z)*e;v.tx=a.tx+(b.tx-a.tx)*e;v.ty=a.ty+(b.ty-a.ty)*e;viewClamp();viewApply();
     if(k<1)v.anim=requestAnimationFrame(step);else phoneBacking()};
   v.anim=requestAnimationFrame(step);
 }
+const viewReset=()=>viewSet('fill');
+/* 拡大率 z にして、画面の点 (sx,sy) にある場所を動かさない */
+function viewZoomAt(z,sx,sy){const v=VIEW,z0=v.z;z=clamp(z,1,ZMAX);v.tx=sx-(sx-v.tx)*z/z0;v.ty=sy-(sy-v.ty)*z/z0;v.z=z;viewClamp();viewApply()}
 /* 2本の指のジェスチャー */
 let gest=null;
 function gestPts(){const sr=$('screen').getBoundingClientRect();const[a,b]=[...touches.values()];
@@ -400,7 +406,7 @@ function gestStart(){cancelAnimationFrame(VIEW.anim);const p=gestPts();gest={d0:
 function gestMove(){if(touches.size<2)return;const p=gestPts(),g=gest;
   const z=clamp(g.z0*p.d/g.d0,1,ZMAX);
   /* はじめの2本指の真ん中にあった場所が、いまの真ん中に来るように */
-  VIEW.z=z;VIEW.tx=p.mx-(g.mx-g.tx)*z/g.z0;VIEW.ty=p.my-(g.my-g.ty)*z/g.z0;viewClamp();viewApply();
+  VIEW.mode='free';VIEW.z=z;VIEW.tx=p.mx-(g.mx-g.tx)*z/g.z0;VIEW.ty=p.my-(g.my-g.ty)*z/g.z0;viewClamp();viewApply();
   if(Math.abs(z-g.z0)>.03||Math.hypot(p.mx-g.mx,p.my-g.my)>6)g.used=true}
 /* 虫めがね */
 let loupe=null,lctx=null,lpos=null,lraf=0;const LD=128;
@@ -441,10 +447,49 @@ function phoneStart(mode){
     :`<div class="ps-in"><p class="ps-go">タップして全画面にもどる</p><button type="button" class="btn ghost" data-a="keep">このまま続ける</button></div>`;
   pstart.hidden=false;
 }
+/* ☰ メニュー（スマホだけ）：時間・★・音量・全体を見る・説明・一時停止・全画面を、ゲーム画面の左上の1つのボタンにまとめる */
+let pm=null,pmBtn=null;
+function pmSync(){if(!pm)return;
+  const tm=$('hudTimer'),sc=$('hudScore');
+  pm.querySelector('.pm-time').textContent=tm&&!tm.hidden&&tm.textContent?tm.textContent:'';
+  pm.querySelector('.pm-score').textContent=sc&&!sc.hidden&&sc.textContent?sc.textContent:'';
+  pm.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',+b.dataset.v===(settings.vol|0)));
+  pm.querySelector('[data-a=view]').textContent=VIEW.mode==='all'?'画面いっぱいに大きく見る':'全体を見る（小さく）';
+  pm.querySelector('[data-a=full]').textContent=fsEl()?'全画面をやめる':'全画面にする';
+  pm.querySelector('[data-a=full]').hidden=!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+  pm.querySelector('[data-a=task]').hidden=!mtTag;
+  pm.querySelector('[data-a=help]').disabled=$('btnHelp').disabled;pm.querySelector('[data-a=pause]').disabled=$('btnPause').disabled}
+function pmOpen(){pmSync();pm.hidden=false;SW.menuOpen=true;mtHide()}
+function pmClose(){pm.hidden=true;SW.menuOpen=false}
 function phoneUI(){
   loupeInit();
-  const zb=document.createElement('button');zb.type='button';zb.id='btnZoom';zb.className='hbtn zoomb';zb.textContent='全体';zb.title='全体を見る（拡大をもとにもどす）';
-  zb.addEventListener('click',viewReset);document.querySelector('.hb-r').prepend(zb);
+  pmBtn=document.createElement('button');pmBtn.type='button';pmBtn.className='pm-btn';pmBtn.setAttribute('aria-label','メニュー');
+  pmBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+  pm=document.createElement('div');pm.className='pm';pm.hidden=true;pm.setAttribute('role','dialog');pm.setAttribute('aria-label','メニュー');
+  pm.innerHTML=`<div class="pm-sheet">
+    <div class="pm-info"><span class="pm-time"></span><span class="pm-score"></span></div>
+    <button type="button" data-a="task">いまやることを見る</button>
+    <button type="button" data-a="view"></button>
+    <div class="pm-vol"><span>音量</span><button type="button" data-v="0">消音</button><button type="button" data-v="1">小</button><button type="button" data-v="2">中</button><button type="button" data-v="3">大</button></div>
+    <button type="button" data-a="help">操作の説明</button>
+    <button type="button" data-a="pause">一時停止・やり直し</button>
+    <button type="button" data-a="full"></button>
+    <button type="button" data-a="close" class="pm-close">とじる</button></div>`;
+  $('screen').append(pmBtn,pm);
+  pmBtn.addEventListener('click',()=>{audio();pm.hidden?pmOpen():pmClose()});
+  pm.addEventListener('click',e=>{
+    if(e.target===pm){pmClose();return}
+    const b=e.target.closest('button');if(!b||b.disabled)return;
+    if(b.dataset.v!=null){audio();settings.vol=+b.dataset.v;saveSettings();applyAudio();pmSync();sfx.blip();return}
+    const a=b.dataset.a;pmClose();
+    if(a==='task')mtShow(8000);
+    else if(a==='view')viewSet(VIEW.mode==='all'?'fill':'all');
+    else if(a==='help')$('btnHelp').click();
+    else if(a==='pause')$('btnPause').click();
+    else if(a==='full'){try{if(fsEl())(document.exitFullscreen||document.webkitExitFullscreen).call(document);else goFull()}catch(_){}}
+  });
+  /* パネル（タイトル・結果など）や説明が出ているあいだは、☰ をかくす（パネルには自分のボタンがある） */
+  setInterval(()=>{const hide=panelOpen()||!!SW.tutActive||!!SW.cardOpen||(pstart&&!pstart.hidden);pmBtn.hidden=hide;if(hide&&!pm.hidden)pmClose()},250);
   phoneStart('first');
   const onFS=()=>{if(!fsEl()&&pstart&&pstart.hidden&&!standalone()&&(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))phoneStart('back')};
   document.addEventListener('fullscreenchange',onFS);document.addEventListener('webkitfullscreenchange',onFS);
@@ -466,8 +511,7 @@ if(PHONE){
   mtBtn.addEventListener('click',()=>{if(mtEl&&!mtEl.classList.contains('off'))mtHide();else mtShow(8000)});
   ms.append(mtBtn);document.querySelector('.hb-l').append(ms);
   mtEl=document.createElement('div');mtEl.className='mtask off';mtEl.setAttribute('aria-live','polite');mtEl.innerHTML='<b></b><p></p>';$('screen').append(mtEl);
-  /* カードをタップすると閉じる。ゲーム画面をさわったときも閉じる（下にあるボタンが見えるように） */
-  mtEl.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();mtHide()});
+  /* カードはさわれない（下のボタンをそのまま押せる）。ゲーム画面をさわると消える */
   cv.addEventListener('pointerdown',()=>{if(!mtPend)mtHide()},true);
   setInterval(()=>{if(mtBusy()){if(!mtEl.classList.contains('off')){mtHide();mtPend=true}}else if(mtPend)mtShow()},300);
 }

@@ -408,7 +408,7 @@ td.pos{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 /* ---------- スマートフォン専用の画面（Ver. 2.8） ----------
    html.phone（指で操作する、画面の短い辺が 600px 以下の端末）だけに使う。パソコン・タブレットの見た目は変えない。
    ・ゲーム画面（#cv）は画面いっぱい。拡大・移動は JavaScript が transform で行う
-   ・時計・残り時間・★は左の列、ボタンは右の列（列の幅 --sideL・--sideR は fit() が計算）
+   ・時計・残り時間・★と上の帯は出さない。音量・全体を見る・説明・一時停止・全画面は、左上の ☰ メニューにまとめる
    ・「いまやること」と操作の説明は、変わったときだけ画面の下にカードで数秒出す */
 @media (orientation:landscape){
   html.phone body{padding:0}
@@ -417,33 +417,30 @@ td.pos{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
   html.phone .screen{max-width:none}
   html.phone #cv{inset:auto;left:0;top:0;will-change:transform}
   html.phone .screen > *{font-size:var(--pfs,12px)}
-  html.phone .hud{position:absolute;inset:0;display:block;pointer-events:none;background:none;border:0;border-radius:0;padding:0;min-height:0;z-index:12;font-size:12px}
-  html.phone .hud button,html.phone .hud .mside{pointer-events:auto}
-  html.phone .hb-l{position:absolute;left:0;top:0;bottom:0;width:var(--sideL,56px);padding:8px 3px 8px max(3px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;align-items:center;gap:7px;flex-wrap:nowrap;text-align:center;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none}
-  html.phone .hb-r{position:absolute;right:0;top:0;bottom:0;width:var(--sideR,56px);padding:8px max(3px,env(safe-area-inset-right,0px)) 8px 3px;display:flex;flex-direction:column;align-items:center;gap:8px;flex-wrap:nowrap;background:linear-gradient(270deg,rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none}
-  html.phone #hudClock{font-size:11px;line-height:1.2;white-space:nowrap}
-  html.phone #hudTimer{order:-1;font-size:12px;line-height:1.25;padding:.25em .3em;border-radius:8px;white-space:normal;text-align:center;max-width:100%}
-  html.phone #hudScore{font-size:11px;white-space:nowrap}
-  html.phone .mside{display:flex;flex-direction:column;align-items:center;gap:7px;max-width:100%}
-  html.phone .hbtn{width:44px;height:44px;border-radius:50%;background:rgba(26,37,50,.92);flex:none}
-  html.phone .hbtn svg{width:20px;height:20px}
-  html.phone .zoomb{display:none;font:inherit;font-size:12px;font-weight:700;color:var(--accent-2);border-color:rgba(246,194,28,.7)}
-  html.phone.zoomed .zoomb{display:grid;place-items:center}
-  html.phone .mtask-btn{display:block;font:inherit;font-size:10.5px;font-weight:700;line-height:1.25;padding:.65em .1em;width:50px;letter-spacing:-.02em;border-radius:10px;border:1px solid rgba(246,194,28,.6);background:rgba(246,194,28,.14);color:var(--accent-2)}
-  html.phone .mtask-btn[hidden]{display:none}
-  html.phone #tag,html.phone #steps,html.phone #hudPlace{display:none}
-  html.phone .console{display:none}
+  /* 上の帯（時計・残り時間・★・ボタン）と下の説明は出さない。ボタンは ☰ メニューにまとめる */
+  html.phone .hud,html.phone .console{display:none}
   /* 「いまやること」カード */
-  html.phone .mtask{display:block;position:absolute;left:50%;bottom:.8em;transform:translateX(-50%);width:min(70%,34em);z-index:5;pointer-events:auto;cursor:pointer;padding:.55em .9em .6em;background:rgba(8,12,18,.88);border:1px solid rgba(246,194,28,.65);border-left-width:4px;border-radius:10px;box-shadow:0 .4em 1.2em rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
-  html.phone .mtask.off{opacity:0;transform:translate(-50%,.6em);pointer-events:none}
-  html.phone .mtask b{display:block;color:var(--accent-2);font-size:1.05em;line-height:1.45}
+  html.phone .mtask{display:block;position:absolute;right:.5em;top:.5em;width:min(46%,26em);z-index:5;pointer-events:none;padding:.55em .9em .6em;background:rgba(8,12,18,.88);border:1px solid rgba(246,194,28,.65);border-left-width:4px;border-radius:10px;box-shadow:0 .4em 1.2em rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
+  html.phone .mtask.off{opacity:0;transform:translateY(-.6em);pointer-events:none}
+  html.phone .mtask b{display:block;color:var(--accent-2);font-size:1em;line-height:1.45}
   html.phone .mtask p{margin:.2em 0 0;font-size:.92em;line-height:1.5;color:#dbe3ea}
   html.phone .mtask p:empty{display:none}
-  /* 会話・説明の枠も、左右の列にかからないように */
-  html.phone .dialog{left:calc(var(--sideL,0px) - env(safe-area-inset-left,0px) + .4em);right:calc(var(--sideR,0px) - env(safe-area-inset-right,0px) + .4em)}
-  html.phone .tut{left:calc(var(--sideL,0px) - env(safe-area-inset-left,0px) + .4em);right:calc(var(--sideR,0px) - env(safe-area-inset-right,0px) + .4em)}
-  html.phone .panel{left:calc(var(--sideL,0px) - env(safe-area-inset-left,0px));right:calc(var(--sideR,0px) - env(safe-area-inset-right,0px));padding:2% 2.5%}
-  html.phone .toast{width:min(calc(100% - var(--sideL,0px) - var(--sideR,0px)),38em)}
+  /* ☰ メニュー */
+  html.phone .pm-btn{position:absolute;left:6px;top:6px;z-index:11;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;padding:0;border:1px solid rgba(255,255,255,.28);background:rgba(8,12,18,.62);color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);box-shadow:0 .2em .6em rgba(0,0,0,.4)}
+  html.phone .pm-btn[hidden]{display:none}
+  html.phone .pm-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;fill:none}
+  html.phone .pm{position:absolute;inset:0;z-index:13;background:rgba(0,0,0,.45)}
+  html.phone .pm[hidden]{display:none}
+  html.phone .pm-sheet{position:absolute;left:6px;top:6px;bottom:6px;width:min(250px,60%);overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:linear-gradient(var(--panel-2),var(--panel));border:1px solid var(--line-2);box-shadow:0 1em 2.5em rgba(0,0,0,.6);font-size:14px}
+  html.phone .pm-sheet > button,html.phone .pm-vol button{font:inherit;font-weight:700;color:var(--ink-2,#eef3f7);background:rgba(255,255,255,.06);border:1px solid var(--line-2);border-radius:10px;min-height:42px;padding:.3em .6em;text-align:left}
+  html.phone .pm-sheet > button:disabled{opacity:.4}
+  html.phone .pm-sheet > button[hidden]{display:none}
+  html.phone .pm-info{display:flex;justify-content:space-between;gap:8px;font-weight:700;color:var(--accent-2);padding:0 .2em;min-height:1.4em}
+  html.phone .pm-vol{display:grid;grid-template-columns:auto repeat(4,1fr);gap:4px;align-items:center}
+  html.phone .pm-vol span{font-weight:700;font-size:13px;padding-right:4px;color:#b9c4cf}
+  html.phone .pm-vol button{text-align:center;padding:0;min-height:38px;font-size:13px}
+  html.phone .pm-vol button.on{background:var(--accent);color:#1a1400;border-color:var(--accent)}
+  html.phone .pm-sheet .pm-close{text-align:center;margin-top:auto;color:#b9c4cf}
 }
 @media (orientation:portrait){html.phone .rotate{display:grid}}
 .mtask{display:none}
