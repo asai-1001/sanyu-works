@@ -98,6 +98,7 @@ function CadGame(){
     draw(g,t){drawAll(g,t)},
     key(g,k,rep){return onKey(g,k,rep)},
     ptr(g,type,p,down){return onPtr(g,type,p,down)},
+    cancel(g){onCancel(g)},loupe(){return step===ST.ELEC},
     wheel(g,d){if(step<ST.ELEC&&!locked()){cam.zoom=S.clamp(cam.zoom*(d>0?1.1:.91),.6,1.7);camT=null}}
   });
 
@@ -187,7 +188,15 @@ function CadGame(){
     setTimeout(()=>g.win('機械設計 7 ステップと、電気設計の回路を完成させた。'),1500)}
 
   /* ---------- マウス・タッチ ---------- */
+  /* スマホ：2本目の指が来たら、とちゅうの操作を「決定しないで」もとにもどす */
+  let holeAim=false;
+  function onCancel(g){holeAim=false;if(step===ST.HOLE)hole.on=false;
+    if(sk.drawing){sk.drawing=false;sk.w=sk.h=0}if(rv.drag){rv.a=rv.drag.a;rv.drag=null}if(pn.drag){pn.l=pn.drag.l;pn.drag=null}
+    if(ex.drag){ex.t=ex.drag.t;ex.drag=null}pt.drag=false;orbit=null;elec.drag=null}
+  /* 指で細かい場所をえらぶとき（スケッチ・穴あけ）は、指の少し上をねらう点にする（指で隠れないように） */
+  const aimUp=()=>S.TOUCH&&((step===ST.SK&&sub==='draw')||(step===ST.HOLE&&sub==='place'));
   function onPtr(g,type,p){VPM=null;
+    if(aimUp())p={x:p.x,y:p.y-S.fingerOff()};
     if(step===ST.ELEC){if(type==='down'){const it=g.items.find(i=>i.part&&!i.off&&inRect(p,i));if(it){elec.drag={part:it.part,x:p.x,y:p.y,sx:p.x,sy:p.y};S.sfx.blip();S.cv.style.cursor='grabbing';return true}
         if(elec.carry){const slot=slotAt(p);if(slot){drop(g,elec.carry,slot);return true}}return false}
       if(type==='move'&&elec.drag){elec.drag.x=p.x;elec.drag.y=p.y;return true}
@@ -204,7 +213,10 @@ function CadGame(){
       if(step===ST.PIN&&sub==='drag'){pn.drag={p0:[p.x,p.y],l:pn.l};return true}
       if(step===ST.TRI&&sub==='drag'){ex.drag={p0:[p.x,p.y],t:ex.t};return true}
       if(step===ST.PAT&&sub==='count'){const s=slider();if(p.x>=s.x-3&&p.x<=s.x+s.w+3&&Math.abs(p.y-s.y)<=5){pt.drag=true;setCount(p.x);return true}}
-      if(step===ST.HOLE&&sub==='place'){const h=pickSurface(p.x,p.y);if(h)holePlace(g,h.x,h.y);return true}
+      if(step===ST.HOLE&&sub==='place'){const h=pickSurface(p.x,p.y);
+        /* 指：押したまま動かして位置を合わせ、指をはなしたところに穴をあける */
+        if(S.TOUCH){holeAim=true;hole.on=!!h;if(h){hole.x=h.x;hole.y=h.y}return true}
+        if(h)holePlace(g,h.x,h.y);return true}
       if(!locked()){orbit={x:p.x,y:p.y,yaw:cam.yaw,pitch:cam.pitch};camT=null;S.cv.style.cursor='move';return true}
       return true}
     if(type==='move'){
@@ -214,10 +226,11 @@ function CadGame(){
       if(ex.drag){const h=arrowOf(triCenter(ex.t),[0,0,1]),along=alongOf(p,ex.drag.p0,h.dir);ex.t=S.clamp(Math.round((ex.drag.t+along/4)*2)/2,0,10);return true}
       if(pt.drag){setCount(p.x);return true}
       if(orbit){cam.yaw=orbit.yaw-(p.x-orbit.x)*.03;cam.pitch=S.clamp(orbit.pitch+(p.y-orbit.y)*.03,-1.2,1.2);return true}
-      if(step===ST.HOLE&&sub==='place'&&inVP(p)){const h=pickSurface(p.x,p.y);hole.on=!!h;if(h){hole.x=h.x;hole.y=h.y}S.cv.style.cursor=h?'crosshair':'default';return true}
+      if(step===ST.HOLE&&sub==='place'&&(inVP(p)||holeAim)){const h=pickSurface(p.x,p.y);hole.on=!!h;if(h){hole.x=h.x;hole.y=h.y}S.cv.style.cursor=h?'crosshair':'default';return true}
       if(inVP(p)&&!onItem){S.cv.style.cursor=(step===ST.RV&&sub==='drag')?'ew-resize':(step===ST.SK&&sub==='draw')?'crosshair':(sub==='drag')?'move':locked()?'default':'grab';return false}
       return false}
     if(type==='up'){
+      if(holeAim){holeAim=false;if(hole.on)holePlace(g,hole.x,hole.y);else S.toast('体の表面の上で指をはなしてね','',1600);return true}
       if(sk.drawing){sk.drawing=false;sketchDone(g);return true}
       if(rv.drag){rv.drag=null;revolveDone(g);return true}
       if(pn.drag){pn.drag=null;pinDone(g);return true}

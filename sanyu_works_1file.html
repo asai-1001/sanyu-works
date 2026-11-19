@@ -9,6 +9,8 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="三友ワークス">
 <meta property="og:title" content="三友ワークス｜三友製作所 ものづくり体験ゲーム">
 <meta property="og:description" content="新人として、さんぽぽを設計から出荷まで作ろう。約10分で遊べる仕事体験ゲーム。">
@@ -423,45 +425,60 @@ td.pos{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
   #app{padding-block:2px}
   .hint{font-size:.8em}
 }
-/* ---------- スマートフォンを横に持ったとき（Ver. 2.7） ----------
-   指で操作する端末（html.touch）だけに使う。パソコンの見た目は変えない。
-   ・ゲーム画面を画面の高さいっぱいに表示する
-   ・時計・残り時間・★は左の余白、ボタンは右の余白に置く（余白の幅 --side は fit() が計算）
-   ・「いまやること」と操作の説明は、変わったときだけ画面の下に数秒出す（左の「やること」でもう一度見られる） */
-@media (orientation:landscape) and (max-height:520px){
-  html.touch body{padding:0}
-  html.touch #app{display:block;position:relative;height:100%;max-width:none;padding:0}
-  html.touch .stagewrap{position:absolute;inset:0;border:0;background:#000}
-  html.touch .hud{position:absolute;inset:0;display:block;pointer-events:none;background:none;border:0;border-radius:0;padding:0;min-height:0;z-index:12;font-size:12px}
-  html.touch .hud button,html.touch .hud .mside{pointer-events:auto}
-  html.touch .hb-l{position:absolute;left:0;top:0;bottom:0;width:var(--side,0px);padding:10px 4px 10px max(4px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;align-items:center;gap:8px;flex-wrap:nowrap;text-align:center}
-  html.touch .hb-r{position:absolute;right:0;top:0;bottom:0;width:var(--side,0px);padding:10px max(4px,env(safe-area-inset-right,0px)) 10px 4px;display:flex;flex-direction:column;align-items:center;gap:9px;flex-wrap:nowrap}
-  html.touch #hudClock{font-size:12px;line-height:1.2;white-space:nowrap}
-  html.touch #hudTimer{order:-1;font-size:13px;line-height:1.25;padding:.25em .35em;border-radius:8px;white-space:normal;text-align:center;min-width:3.6em}
-  html.touch #hudScore{font-size:12px;white-space:nowrap}
-  html.touch .mside{display:flex;flex-direction:column;align-items:center;gap:8px}
-  html.touch .hbtn{width:44px;height:44px;border-radius:50%;background:rgba(26,37,50,.92)}
-  html.touch .hbtn svg{width:20px;height:20px}
-  html.touch .mtask-btn{display:block;font:inherit;font-size:12px;font-weight:700;line-height:1.25;padding:.55em .5em;min-width:44px;border-radius:10px;border:1px solid rgba(246,194,28,.6);background:rgba(246,194,28,.12);color:var(--accent-2)}
-  html.touch .mtask-btn[hidden]{display:none}
-  html.touch #tag,html.touch #steps,html.touch #hudPlace{display:none}
-  html.touch .console{display:none}
-  /* 余白がせまい端末（画面が16:9に近い）では、ボタンなどをゲーム画面の上に小さく重ねる */
-  html.touch.thin .hb-l,html.touch.thin .hb-r{bottom:auto;width:auto;flex-direction:row;padding:6px;gap:6px;background:rgba(8,12,18,.72);border-radius:0 0 12px 0}
-  html.touch.thin .hb-r{border-radius:0 0 0 12px}
-  html.touch.thin .mside{flex-direction:row}
-  html.touch.thin .hbtn{width:36px;height:36px}
-  html.touch .screen > *{font-size:clamp(8.5px,1.75cqw,28px)}
+/* ---------- スマートフォン専用の画面（Ver. 2.8） ----------
+   html.phone（指で操作する、画面の短い辺が 600px 以下の端末）だけに使う。パソコン・タブレットの見た目は変えない。
+   ・ゲーム画面（#cv）は画面いっぱい。拡大・移動は JavaScript が transform で行う
+   ・時計・残り時間・★は左の列、ボタンは右の列（列の幅 --sideL・--sideR は fit() が計算）
+   ・「いまやること」と操作の説明は、変わったときだけ画面の下にカードで数秒出す */
+@media (orientation:landscape){
+  html.phone body{padding:0}
+  html.phone #app{display:block;position:relative;height:100%;max-width:none;padding:0}
+  html.phone .stagewrap{position:absolute;top:0;bottom:0;left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);border:0;background:#000;display:block}
+  html.phone .screen{max-width:none}
+  html.phone #cv{inset:auto;left:0;top:0;will-change:transform}
+  html.phone .screen > *{font-size:var(--pfs,12px)}
+  html.phone .hud{position:absolute;inset:0;display:block;pointer-events:none;background:none;border:0;border-radius:0;padding:0;min-height:0;z-index:12;font-size:12px}
+  html.phone .hud button,html.phone .hud .mside{pointer-events:auto}
+  html.phone .hb-l{position:absolute;left:0;top:0;bottom:0;width:var(--sideL,56px);padding:8px 3px 8px max(3px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;align-items:center;gap:7px;flex-wrap:nowrap;text-align:center;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none}
+  html.phone .hb-r{position:absolute;right:0;top:0;bottom:0;width:var(--sideR,56px);padding:8px max(3px,env(safe-area-inset-right,0px)) 8px 3px;display:flex;flex-direction:column;align-items:center;gap:8px;flex-wrap:nowrap;background:linear-gradient(270deg,rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none}
+  html.phone #hudClock{font-size:11px;line-height:1.2;white-space:nowrap}
+  html.phone #hudTimer{order:-1;font-size:12px;line-height:1.25;padding:.25em .3em;border-radius:8px;white-space:normal;text-align:center;max-width:100%}
+  html.phone #hudScore{font-size:11px;white-space:nowrap}
+  html.phone .mside{display:flex;flex-direction:column;align-items:center;gap:7px;max-width:100%}
+  html.phone .hbtn{width:44px;height:44px;border-radius:50%;background:rgba(26,37,50,.92);flex:none}
+  html.phone .hbtn svg{width:20px;height:20px}
+  html.phone .zoomb{display:none;font:inherit;font-size:12px;font-weight:700;color:var(--accent-2);border-color:rgba(246,194,28,.7)}
+  html.phone.zoomed .zoomb{display:grid;place-items:center}
+  html.phone .mtask-btn{display:block;font:inherit;font-size:10.5px;font-weight:700;line-height:1.25;padding:.65em .1em;width:50px;letter-spacing:-.02em;border-radius:10px;border:1px solid rgba(246,194,28,.6);background:rgba(246,194,28,.14);color:var(--accent-2)}
+  html.phone .mtask-btn[hidden]{display:none}
+  html.phone #tag,html.phone #steps,html.phone #hudPlace{display:none}
+  html.phone .console{display:none}
+  /* 「いまやること」カード */
+  html.phone .mtask{display:block;position:absolute;left:50%;bottom:.8em;transform:translateX(-50%);width:min(70%,34em);z-index:5;pointer-events:auto;cursor:pointer;padding:.55em .9em .6em;background:rgba(8,12,18,.88);border:1px solid rgba(246,194,28,.65);border-left-width:4px;border-radius:10px;box-shadow:0 .4em 1.2em rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
+  html.phone .mtask.off{opacity:0;transform:translate(-50%,.6em);pointer-events:none}
+  html.phone .mtask b{display:block;color:var(--accent-2);font-size:1.05em;line-height:1.45}
+  html.phone .mtask p{margin:.2em 0 0;font-size:.92em;line-height:1.5;color:#dbe3ea}
+  html.phone .mtask p:empty{display:none}
+  /* 会話・説明の枠も、左右の列にかからないように */
+  html.phone .dialog{left:calc(var(--sideL,0px) - env(safe-area-inset-left,0px) + .4em);right:calc(var(--sideR,0px) - env(safe-area-inset-right,0px) + .4em)}
+  html.phone .tut{left:calc(var(--sideL,0px) - env(safe-area-inset-left,0px) + .4em);right:calc(var(--sideR,0px) - env(safe-area-inset-right,0px) + .4em)}
+  html.phone .panel{left:calc(var(--sideL,0px) - env(safe-area-inset-left,0px));right:calc(var(--sideR,0px) - env(safe-area-inset-right,0px));padding:2% 2.5%}
+  html.phone .toast{width:min(calc(100% - var(--sideL,0px) - var(--sideR,0px)),38em)}
 }
-/* 「いまやること」カード（指で操作する端末だけ） */
+@media (orientation:portrait){html.phone .rotate{display:grid}}
 .mtask{display:none}
-@media (orientation:landscape) and (max-height:520px){
-html.touch .mtask{display:block;position:absolute;left:50%;bottom:.8em;transform:translateX(-50%);width:min(90%,34em);z-index:5;pointer-events:auto;cursor:pointer;padding:.55em .9em .6em;background:rgba(8,12,18,.88);border:1px solid rgba(246,194,28,.65);border-left-width:4px;border-radius:10px;box-shadow:0 .4em 1.2em rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
-html.touch .mtask.off{opacity:0;transform:translate(-50%,.6em);pointer-events:none}
-html.touch .mtask b{display:block;color:var(--accent-2);font-size:1.05em;line-height:1.45}
-html.touch .mtask p{margin:.2em 0 0;font-size:.92em;line-height:1.5;color:#dbe3ea}
-html.touch .mtask p:empty{display:none}
-}
+/* 虫めがね */
+.loupe{position:absolute;z-index:9;border-radius:50%;pointer-events:none;border:3px solid var(--accent);box-shadow:0 .4em 1.4em rgba(0,0,0,.6)}
+.loupe[hidden]{display:none}
+/* スマホの「タップしてスタート」 */
+.pstart{position:fixed;inset:0;z-index:60;display:grid;place-items:center;text-align:center;padding:1em;background:radial-gradient(circle at 50% 40%,rgba(30,44,60,.97),rgba(5,8,12,.98));color:var(--ink-2,#eef3f7);font-size:15px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.pstart[hidden]{display:none}
+.pstart img{width:96px;height:auto;display:block;margin:0 auto .3em;filter:drop-shadow(0 .3em .8em rgba(0,0,0,.5))}
+.pstart b{display:block;font-size:22px;letter-spacing:.06em;color:var(--accent-2)}
+.ps-go{margin:.7em 0 .5em;font-size:17px;font-weight:700;animation:psgo 1.4s ease-in-out infinite}
+.pstart small{display:block;color:#b9c4cf;line-height:1.6;font-size:12.5px}
+.pstart .btn{margin-top:.6em;font-size:14px}
+@keyframes psgo{50%{opacity:.45}}
 .mtask-btn{display:none}
 html.touch,html.touch body{overscroll-behavior:none;touch-action:manipulation}   /* 引っぱって再読み込み・ダブルタップ拡大を止める */
 html.touch .screen{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -800,6 +817,10 @@ function setTimer(v,label){const el=$('hudTimer');if(v==null){el.hidden=true;uiC
    「クリック」を「タップ」、「ホイール」を「2本の指」に言いかえる。 */
 const TOUCH=(()=>{try{if(/[?&]touch\b/.test(location.search))return true;return matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches}catch(e){return false}})();
 if(TOUCH)document.documentElement.classList.add('touch');
+/* スマートフォン（画面の短い辺が 600px 以下の、指で操作する端末）。タブレットはパソコンと同じ画面のまま */
+const PHONE=TOUCH&&(/[?&]phone\b/.test(location.search)||Math.min(screen.width,screen.height)<=600);
+if(PHONE)document.documentElement.classList.add('phone');
+const IOS=/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const TOUCH_MAP={
   'Enterキー（または画面のクリック）で会話が進みます。':'画面をタップすると会話が進みます。',
   '操作のきほん。矢印キーでえらんで、Enterキーで決定。数字キーなら番号で直接えらべるよ。マウスでクリックしてもOK！':'操作のきほん。えらびたいものを、指でタップするだけだよ。',
@@ -821,6 +842,9 @@ const TOUCH_MAP={
   '矢印キー：えらぶ　Enter：決定　数字キー：番号でえらぶ　（マウスのクリックでもOK）':'えらびたいものをタップ',
   '矢印キー：えらぶ　Enter：決定　数字キー：番号でえらぶ　（クリックでもOK）':'えらびたいものをタップ',
   'Enter：決定　（クリックでもOK）':'タップで決定',
+  'マウス：体の表面をクリックして穴をあける（X・Y の数字を見ながら）　／　キーボード：矢印で動かして Enter':'指で押したまま動かすと、指の少し上に穴の印と X・Y の数字が出る。合ったところで指をはなすと穴があく',
+  '目の穴の位置をクリック':'指で押したまま位置を合わせて、はなすと穴があく',
+  'いまやること：目の穴の位置をクリック（中心から横 6 mm・上 6 mm）':'いまやること：目の穴の位置をえらぶ（中心から横 6 mm・上 6 mm）',
   '←→：えらぶ　Enter：決定　数字キー 1：合格　2：不合格　（クリックでもOK）':'「合格」か「不合格」をタップ',
   '↑↓：左目・右目を切りかえ　←→：明るさを変える（押しつづけると連続で変わる）　Enter：確定　（ボタンも長押しできます）':'左目・右目をタップで切りかえ、ボタンで明るさを変えて「確定」（ボタンは長押しできます）',
   '←→：回す（押しつづけると連続で回る）　↑↓：ボタンをえらぶ　Enter：決定　数字キー 1：記録　2：ぜんぶ見た　（ボタンも長押しできます）':'ボタンで回して、キズやよごれが見えたら「記録」（ボタンは長押しできます）',
@@ -847,9 +871,9 @@ function mtShow(ms){
   mtPend=false;mtEl.classList.remove('off');clearTimeout(mtTO);mtTO=setTimeout(mtHide,ms||4500);
 }
 const setTag=s=>{const t=touchText(s||'');setText('tag',t);
-  if(!TOUCH||t===mtTag)return;mtTag=t;if(mtBtn)mtBtn.hidden=!t;if(t)mtShow();else{mtPend=false;mtHide()}};
+  if(!PHONE||t===mtTag)return;mtTag=t;if(mtBtn)mtBtn.hidden=!t;if(t)mtShow();else{mtPend=false;mtHide()}};
 const setHint=s=>{const t=touchText(s||'');setText('hint',t);
-  if(!TOUCH)return;mtHint=t;if(mtEl)mtEl.querySelector('p').textContent=t};
+  if(!PHONE)return;mtHint=t;if(mtEl)mtEl.querySelector('p').textContent=t};
 let flashTO=0;
 function flash(txt,kind){const f=$('flash');f.textContent=txt;f.className='flash '+(kind||'');f.hidden=false;void f.offsetWidth;f.classList.add('go');clearTimeout(flashTO);flashTO=setTimeout(()=>{f.hidden=true},1150)}
 let toastTO=0;
@@ -906,30 +930,39 @@ let lastInput=performance.now();const touchInput=()=>{lastInput=performance.now(
 const idleSec=()=>(performance.now()-lastInput)/1000;
 function busy(){return !!dlg||panelOpen()||!!SW.tutActive||!!SW.paused||!!SW.cardOpen}
 function toCanvas(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
-/* 指2本：ピンチで拡大・縮小（マウスのホイールと同じ扱い） */
-const touches=new Map();let pinch=null;
+/* 指2本：ピンチで拡大・縮小。スマホは画面そのものを拡大・移動、タブレットはマウスのホイールと同じ扱い */
+const touches=new Map();let pinch=null,lp=null;
 const tDist=()=>{const[a,b]=[...touches.values()];return Math.hypot(a.x-b.x,a.y-b.y)};
+const phoneLand=()=>PHONE&&isLand();
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')touches.set(e.pointerId,{x:e.clientX,y:e.clientY,e});
   const sc=SW.scene;
   if(touches.size>=2){e.preventDefault();
-    if(!pinch&&sc&&sc.onWheel&&!busy()&&!dlg){
-      if(pointer.down){pointer.down=false;const f=[...touches.values()][0];if(sc.onUp)sc.onUp(toCanvas(f.e))}
-      pinch={d:tDist()}}
+    if(pointer.down){pointer.down=false;loupeHide();lp=null;const f=[...touches.values()][0];
+      if(sc){if(sc.onCancel)sc.onCancel(toCanvas(f.e));else if(sc.onUp)sc.onUp(toCanvas(f.e))}}
+    if(phoneLand()){if(!gest)gestStart()}
+    else if(!pinch&&sc&&sc.onWheel&&!busy()&&!dlg)pinch={d:tDist()};
     return}
   if(dlg){dlgAdvance();e.preventDefault();return}
   if(busy()||!sc||!sc.onDown)return;
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  pointer.down=true;sc.onDown(toCanvas(e));e.preventDefault();
+  pointer.down=true;lp={x:e.clientX,y:e.clientY,moved:false,touch:e.pointerType==='touch'};sc.onDown(toCanvas(e));e.preventDefault();
 });
 cv.addEventListener('pointermove',e=>{
   if(touches.has(e.pointerId))touches.set(e.pointerId,{x:e.clientX,y:e.clientY,e});
   const sc=SW.scene;
+  if(gest){gestMove();return}
   if(pinch){if(touches.size>=2&&sc&&sc.onWheel&&!busy()){const d=tDist(),r=d/Math.max(1,pinch.d);
       if(r>1.1){sc.onWheel(-1);pinch.d=d}else if(r<.9){sc.onWheel(1);pinch.d=d}}
     return}
-  if(sc&&sc.onMove&&!busy())sc.onMove(toCanvas(e),pointer.down)});
-const pUp=e=>{touches.delete(e.pointerId);if(pinch){if(touches.size===0)pinch=null;return}
+  if(sc&&sc.onMove&&!busy())sc.onMove(toCanvas(e),pointer.down);
+  /* スマホ：指でなぞっているときは虫めがねを出す（押しつづけるだけのボタンでは出さない） */
+  if(PHONE&&lp&&lp.touch&&pointer.down){if(!lp.moved&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>10)lp.moved=true;
+    if(lp.moved&&!(sc&&sc.loupeOK&&!sc.loupeOK()))loupeShow(e.clientX,e.clientY);else loupeHide()}});
+const pUp=e=>{touches.delete(e.pointerId);
+  if(gest){if(touches.size===0){gest=null;phoneBacking()}return}
+  if(pinch){if(touches.size===0)pinch=null;return}
+  loupeHide();lp=null;
   if(!pointer.down)return;pointer.down=false;const sc=SW.scene;if(sc&&sc.onUp)sc.onUp(toCanvas(e))};
 cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pUp);
 cv.addEventListener('wheel',e=>{const sc=SW.scene;if(sc&&sc.onWheel&&!busy()){e.preventDefault();sc.onWheel(e.deltaY)}},{passive:false});
@@ -993,11 +1026,115 @@ const gateScene={evening:false,mascot:false,draw(t){
 }};
 
 /* ---------- 画面を16:9でウィンドウに収める（スクロールなし）＋高精細化 ---------- */
-function fit(){const wrap=$('stagewrap'),sc=$('screen');const w=wrap.clientWidth,h=wrap.clientHeight;const sw=Math.max(240,Math.min(w,h*16/9));sc.style.width=sw+'px';sc.style.height=(sw*9/16)+'px';
-  if(TOUCH){const side=Math.max(0,(w-sw)/2);document.documentElement.style.setProperty('--side',side+'px');document.documentElement.classList.toggle('thin',side<56)}
+/* =====================================================================
+   スマートフォン専用の画面（Ver. 2.8）… PHONE のときだけ動く。パソコンには関係しない
+   ・ゲーム画面は画面いっぱい。2本の指で広げる・つまむ・動かすと、拡大・縮小・移動
+   ・指でなぞっている場所は「虫めがね」で指の上に大きく表示
+   ・最初に「タップしてスタート」で全画面・横向きにする
+   ===================================================================== */
+const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0};
+const ZMAX=3;
+const isLand=()=>innerWidth>=innerHeight;
+function phoneFit(wrap,sc,w,h){
+  sc.style.width=w+'px';sc.style.height=h+'px';
+  /* 左右に、ボタンの列のぶん（最低 50px）をあける */
+  const cw=Math.min(w-100,h*16/9),ch=cw*9/16;VIEW.w=w;VIEW.h=h;VIEW.cw=cw;VIEW.ch=ch;
+  cv.style.width=cw+'px';cv.style.height=ch+'px';cv.style.transformOrigin='0 0';
+  const r=wrap.getBoundingClientRect(),side=Math.max(0,(w-cw)/2),root=document.documentElement.style;
+  root.setProperty('--sideL',(r.left+side)+'px');root.setProperty('--sideR',(innerWidth-r.right+side)+'px');
+  root.setProperty('--pfs',Math.max(9,Math.min(h*.0288*1.15,w*.0166)).toFixed(2)+'px');
+  viewClamp();viewApply();phoneBacking();
+}
+function phoneUnfit(sc){cv.style.width=cv.style.height=cv.style.transform='';VIEW.z=1;document.documentElement.classList.remove('zoomed')}
+function phoneBacking(){
+  const dpr=Math.min(window.devicePixelRatio||1,3);
+  const bw=Math.round(clamp(VIEW.cw*Math.min(VIEW.z,2.2)*dpr,640,3200)/16)*16,bh=bw*9/16;
+  if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh}SC=bw/W;
+}
+function viewClamp(){
+  const v=VIEW,W2=v.cw*v.z,H2=v.ch*v.z;
+  v.tx=W2<=v.w?(v.w-W2)/2:clamp(v.tx,v.w-W2,0);
+  v.ty=H2<=v.h?(v.h-H2)/2:clamp(v.ty,v.h-H2,0);
+}
+function viewApply(){
+  cv.style.transform=`translate(${VIEW.tx.toFixed(1)}px,${VIEW.ty.toFixed(1)}px) scale(${VIEW.z.toFixed(4)})`;
+  document.documentElement.classList.toggle('zoomed',VIEW.z>1.02);
+}
+/* 拡大率 z にして、画面の点 (sx,sy) にある場所を動かさない */
+function viewZoomAt(z,sx,sy){const v=VIEW,z0=v.z;z=clamp(z,1,ZMAX);v.tx=sx-(sx-v.tx)*z/z0;v.ty=sy-(sy-v.ty)*z/z0;v.z=z;viewClamp();viewApply()}
+function viewReset(){
+  const v=VIEW,z0=v.z,x0=v.tx,y0=v.ty,t0=performance.now();cancelAnimationFrame(v.anim);
+  const step=t=>{const k=Math.min(1,(t-t0)/220),e=1-Math.pow(1-k,3);v.z=z0+(1-z0)*e;v.tx=x0+((v.w-v.cw)/2-x0)*e;v.ty=y0+((v.h-v.ch)/2-y0)*e;viewClamp();viewApply();
+    if(k<1)v.anim=requestAnimationFrame(step);else phoneBacking()};
+  v.anim=requestAnimationFrame(step);
+}
+/* 2本の指のジェスチャー */
+let gest=null;
+function gestPts(){const sr=$('screen').getBoundingClientRect();const[a,b]=[...touches.values()];
+  return{d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2-sr.left,my:(a.y+b.y)/2-sr.top}}
+function gestStart(){cancelAnimationFrame(VIEW.anim);const p=gestPts();gest={d0:Math.max(20,p.d),z0:VIEW.z,mx:p.mx,my:p.my,tx:VIEW.tx,ty:VIEW.ty,used:false}}
+function gestMove(){if(touches.size<2)return;const p=gestPts(),g=gest;
+  const z=clamp(g.z0*p.d/g.d0,1,ZMAX);
+  /* はじめの2本指の真ん中にあった場所が、いまの真ん中に来るように */
+  VIEW.z=z;VIEW.tx=p.mx-(g.mx-g.tx)*z/g.z0;VIEW.ty=p.my-(g.my-g.ty)*z/g.z0;viewClamp();viewApply();
+  if(Math.abs(z-g.z0)>.03||Math.hypot(p.mx-g.mx,p.my-g.my)>6)g.used=true}
+/* 虫めがね */
+let loupe=null,lctx=null,lpos=null,lraf=0;const LD=128;
+function loupeInit(){loupe=document.createElement('canvas');loupe.className='loupe';loupe.hidden=true;$('screen').append(loupe);lctx=loupe.getContext('2d')}
+function loupeShow(fx,fy){if(!loupe)return;lpos={x:fx,y:fy};if(loupe.hidden){loupe.hidden=false;const tick=()=>{if(!lpos)return;loupeDraw();lraf=requestAnimationFrame(tick)};lraf=requestAnimationFrame(tick)}}
+function loupeHide(){lpos=null;cancelAnimationFrame(lraf);if(loupe)loupe.hidden=true}
+function loupeDraw(){
+  const dpr=Math.min(window.devicePixelRatio||1,3),D=Math.round(LD*dpr);if(loupe.width!==D){loupe.width=loupe.height=D;loupe.style.width=loupe.style.height=LD+'px'}
+  const r=cv.getBoundingClientRect(),sr=$('screen').getBoundingClientRect();
+  const bx=(lpos.x-r.left)/r.width*cv.width,by=(lpos.y-r.top)/r.height*cv.height,src=LD/2*(cv.width/r.width);
+  lctx.save();lctx.clearRect(0,0,D,D);lctx.beginPath();lctx.arc(D/2,D/2,D/2-2*dpr,0,Math.PI*2);lctx.clip();
+  lctx.fillStyle='#000';lctx.fillRect(0,0,D,D);lctx.drawImage(cv,bx-src/2,by-src/2,src,src,0,0,D,D);
+  lctx.strokeStyle='rgba(255,255,255,.9)';lctx.lineWidth=1.5*dpr;lctx.beginPath();
+  lctx.moveTo(D/2-10*dpr,D/2);lctx.lineTo(D/2-3*dpr,D/2);lctx.moveTo(D/2+3*dpr,D/2);lctx.lineTo(D/2+10*dpr,D/2);
+  lctx.moveTo(D/2,D/2-10*dpr);lctx.lineTo(D/2,D/2-3*dpr);lctx.moveTo(D/2,D/2+3*dpr);lctx.lineTo(D/2,D/2+10*dpr);lctx.stroke();lctx.restore();
+  /* 置き場所：指の上。上が足りなければ、指の横（画面の内側） */
+  let cx=lpos.x-sr.left,cy=lpos.y-sr.top-LD*.95;
+  if(cy-LD/2<4){cy=clamp(lpos.y-sr.top,LD/2+4,sr.height-LD/2-4);cx+=(cx>sr.width/2?-1:1)*LD*1.05}
+  cx=clamp(cx,LD/2+4,sr.width-LD/2-4);
+  loupe.style.left=(cx-LD/2)+'px';loupe.style.top=(cy-LD/2)+'px';
+}
+/* 指の位置からどれだけ上を「ねらう点」にするか（CADの穴あけなど、細かい場所をえらぶとき） */
+function fingerOff(){const r=cv.getBoundingClientRect();return 34/(r.width/W||1)}
+/* 全画面 */
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function lockLand(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{})}}catch(e){}}
+function goFull(){try{const el=document.documentElement,f=el.requestFullscreen||el.webkitRequestFullscreen;if(!f){lockLand();return}
+  const r=f.call(el,{navigationUI:'hide'});if(r&&r.then)r.then(lockLand,()=>{});else lockLand()}catch(e){}}
+const standalone=()=>{try{return matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+let pstart=null,pstartMode='';
+function phoneStart(mode){
+  if(!pstart){pstart=document.createElement('div');pstart.className='pstart';pstart.setAttribute('role','dialog');document.body.append(pstart);
+    pstart.addEventListener('click',e=>{const keep=e.target.closest('[data-a=keep]');pstart.hidden=true;if(!keep&&!standalone())goFull()})}
+  pstartMode=mode;const canFS=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+  pstart.innerHTML=mode==='first'
+    ?`<div class="ps-in"><img src="${asset('img/sanpopo.png')}" alt=""><b>三友ワークス</b><p class="ps-go">画面をタップしてスタート</p>
+      <small>${canFS?'全画面・横向きで遊びます。':(IOS&&!standalone()?'iPhone は、共有ボタン →「ホーム画面に追加」から開くと、全画面で遊べます。':'スマホを横向きにして遊んでね。')}<br>2本の指で広げると、画面を拡大できます。</small></div>`
+    :`<div class="ps-in"><p class="ps-go">タップして全画面にもどる</p><button type="button" class="btn ghost" data-a="keep">このまま続ける</button></div>`;
+  pstart.hidden=false;
+}
+function phoneUI(){
+  loupeInit();
+  const zb=document.createElement('button');zb.type='button';zb.id='btnZoom';zb.className='hbtn zoomb';zb.textContent='全体';zb.title='全体を見る（拡大をもとにもどす）';
+  zb.addEventListener('click',viewReset);document.querySelector('.hb-r').prepend(zb);
+  phoneStart('first');
+  const onFS=()=>{if(!fsEl()&&pstart&&pstart.hidden&&!standalone()&&(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))phoneStart('back')};
+  document.addEventListener('fullscreenchange',onFS);document.addEventListener('webkitfullscreenchange',onFS);
+  /* スマホでは、ページそのものの拡大（ダブルタップ・ピンチ）を止める */
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+}
+if(PHONE)phoneUI();
+function fit(){const wrap=$('stagewrap'),sc=$('screen');const w=wrap.clientWidth,h=wrap.clientHeight;
+  if(PHONE){if(w>=h){phoneFit(wrap,sc,w,h);return}phoneUnfit(sc)}
+  const sw=Math.max(240,Math.min(w,h*16/9));sc.style.width=sw+'px';sc.style.height=(sw*9/16)+'px';
   const dpr=Math.min(window.devicePixelRatio||1,3);const bw=Math.round(clamp(sw*dpr,640,2560)/16)*16,bh=bw*9/16;
   if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh}SC=bw/W}
-if(TOUCH){
+if(PHONE){
   /* 時計・残り時間・★を左の列へ、「やること」ボタンを追加。説明のカードを作る */
   const ms=document.createElement('div');ms.className='mside';ms.append($('hudTimer'),$('hudScore'));
   mtBtn=document.createElement('button');mtBtn.type='button';mtBtn.className='mtask-btn';mtBtn.textContent='やること';mtBtn.hidden=true;
@@ -1018,7 +1155,7 @@ function fadeOut(ms){const f=$('fade');if(reduceMotion){return Promise.resolve()
 function fadeIn(){const f=$('fade');f.classList.remove('on');setTimeout(()=>{if(!f.classList.contains('on'))f.hidden=true},320)}
 
 Object.defineProperty(SW,'SC',{get:()=>SC});
-Object.assign(SW,{asset,W,H,TAU,$,cv,ctx,reduceMotion,clamp,esc,store,settings,saveSettings,
+Object.assign(SW,{asset,PHONE,fingerOff,viewReset,W,H,TAU,$,cv,ctx,reduceMotion,clamp,esc,store,settings,saveSettings,
   setCtx:c=>{C=c},getCtx:()=>C,
   R,circ,ring,line,box,jt,FF,mulberry,hash,gauss,triPath,lamp,avatar,SANPO,
   audio,applyAudio,volNow,bgmHold,tone,noise,sfx,bgm,voicePlay,voiceStop,voiceProbe,voiceCount,idleSec,touchInput,fadeOut,fadeIn,
@@ -2022,16 +2159,27 @@ function make(def){
   g.draw=t=>{const c=C();c.save();if(g.shake>0&&!S.reduceMotion)c.translate(Math.sin(g.T*70)*g.shake*3,0);def.draw(g,t);c.restore()};
   const hit0=(p,m)=>g.items.findIndex(it=>!it.off&&p.x>=it.x-m&&p.x<=it.x+it.w+m&&p.y>=it.y-m&&p.y<=it.y+it.h+m);
   /* 指で操作する端末では、少し外れても近くのボタンを押したことにする（パソコンは今までどおり） */
-  const hit=p=>{const i=hit0(p,0);if(i>=0||!S.TOUCH)return i;return hit0(p,4)};
+  const hit=p=>{const i=hit0(p,0);if(i>=0||!S.TOUCH)return i;
+    /* 指の太さぶん（画面で約 16px）広げて、いちばん近いボタンをえらぶ */
+    const r=S.cv.getBoundingClientRect(),m=S.clamp(16/((r.width/S.W)||2),3,9);let best=-1,bd=1e9;
+    g.items.forEach((it,j)=>{if(it.off)return;const dx=Math.max(it.x-p.x,0,p.x-it.x-it.w),dy=Math.max(it.y-p.y,0,p.y-it.y-it.h),d=Math.hypot(dx,dy);if(d<=m&&d<bd){bd=d;best=j}});
+    return best};
   /* スタート直後の0.5秒は決定を受けつけない（会話を Enter 連打で進めた勢いで、まちがって選ばないように） */
   let t0=0;
   const fire=it=>{if(!it||it.off||!g.run||g.done)return;if(it.hold)return;if(performance.now()-t0<500)return;S.sfx.click();it.on&&it.on(it)};
   /* def.ptr(g,'down'|'move'|'up',p) が true を返したら、その作業が自分でマウス操作を処理する（つかんで動かす操作など）
      it.repeat のボタンは、押しつづけるとくり返す */
-  g.onDown=p=>{if(!g.run||g.done)return;g.ptr2=true;if(def.ptr&&def.ptr(g,'down',p))return;const i=hit(p);if(i<0)return;g.fi=i;const it=g.items[i];if(it.hold)g.ptr=true;else{fire(it);if(it.repeat)rep={it,t:.36}}};
+  let pend=-1;   /* 指で押したボタン（指をはなしたときに決定する） */
+  g.onDown=p=>{pend=-1;if(!g.run||g.done)return;g.ptr2=true;if(def.ptr&&def.ptr(g,'down',p))return;const i=hit(p);if(i<0)return;g.fi=i;const it=g.items[i];
+    if(it.hold)g.ptr=true;else if(S.TOUCH&&!it.repeat)pend=i;else{fire(it);if(it.repeat)rep={it,t:.36}}};
   g.onMove=(p,down)=>{if(def.ptr&&g.run&&!g.done&&def.ptr(g,'move',p,down))return;const i=hit(p);if(i>=0&&i!==hover){g.fi=i}hover=i;S.cv.style.cursor=i>=0?'pointer':'default'};
   g.onWheel=d=>{if(def.wheel&&g.run&&!g.done)def.wheel(g,d)};   /* マウスのホイール（CADの拡大・縮小など） */
-  g.onUp=p=>{g.ptr=false;g.ptr2=false;rep=null;if(def.ptr&&g.run&&!g.done)def.ptr(g,'up',p)};
+  g.onUp=p=>{g.ptr=false;g.ptr2=false;rep=null;const pi=pend;pend=-1;if(def.ptr&&g.run&&!g.done)def.ptr(g,'up',p);
+    /* 指：押したボタンの上ではなしたら決定（ずらしてはなすと取り消し。2本指の拡大でボタンが押されないように） */
+    if(pi>=0&&g.run&&!g.done&&hit(p)===pi&&g.items[pi])fire(g.items[pi])};
+  /* スマホ：2本目の指が来たとき（画面の拡大）。とちゅうの操作は「決定しないで」やめる。cancel がない作業は up と同じ */
+  g.onCancel=p=>{pend=-1;if(def.cancel){g.ptr=false;g.ptr2=false;rep=null;if(g.run&&!g.done)def.cancel(g)}else g.onUp(p)};
+  g.loupeOK=()=>def.loupe?!!def.loupe(g):true;
   g.onKey=(k,rep)=>{if(!g.run||g.done)return;if((k==='Enter'||k===' ')&&performance.now()-t0<500)return;if(def.key&&def.key(g,k,rep))return;
     if(k==='Enter'||k===' '){fire(g.items[g.fi]);return}
     if(/^[1-9]$/.test(k)){const i=g.items.findIndex(it=>String(it.n)===k&&!it.off);if(i>=0){g.fi=i;fire(g.items[i])}return}
@@ -2231,6 +2379,7 @@ function CadGame(){
     draw(g,t){drawAll(g,t)},
     key(g,k,rep){return onKey(g,k,rep)},
     ptr(g,type,p,down){return onPtr(g,type,p,down)},
+    cancel(g){onCancel(g)},loupe(){return step===ST.ELEC},
     wheel(g,d){if(step<ST.ELEC&&!locked()){cam.zoom=S.clamp(cam.zoom*(d>0?1.1:.91),.6,1.7);camT=null}}
   });
 
@@ -2320,7 +2469,15 @@ function CadGame(){
     setTimeout(()=>g.win('機械設計 7 ステップと、電気設計の回路を完成させた。'),1500)}
 
   /* ---------- マウス・タッチ ---------- */
+  /* スマホ：2本目の指が来たら、とちゅうの操作を「決定しないで」もとにもどす */
+  let holeAim=false;
+  function onCancel(g){holeAim=false;if(step===ST.HOLE)hole.on=false;
+    if(sk.drawing){sk.drawing=false;sk.w=sk.h=0}if(rv.drag){rv.a=rv.drag.a;rv.drag=null}if(pn.drag){pn.l=pn.drag.l;pn.drag=null}
+    if(ex.drag){ex.t=ex.drag.t;ex.drag=null}pt.drag=false;orbit=null;elec.drag=null}
+  /* 指で細かい場所をえらぶとき（スケッチ・穴あけ）は、指の少し上をねらう点にする（指で隠れないように） */
+  const aimUp=()=>S.TOUCH&&((step===ST.SK&&sub==='draw')||(step===ST.HOLE&&sub==='place'));
   function onPtr(g,type,p){VPM=null;
+    if(aimUp())p={x:p.x,y:p.y-S.fingerOff()};
     if(step===ST.ELEC){if(type==='down'){const it=g.items.find(i=>i.part&&!i.off&&inRect(p,i));if(it){elec.drag={part:it.part,x:p.x,y:p.y,sx:p.x,sy:p.y};S.sfx.blip();S.cv.style.cursor='grabbing';return true}
         if(elec.carry){const slot=slotAt(p);if(slot){drop(g,elec.carry,slot);return true}}return false}
       if(type==='move'&&elec.drag){elec.drag.x=p.x;elec.drag.y=p.y;return true}
@@ -2337,7 +2494,10 @@ function CadGame(){
       if(step===ST.PIN&&sub==='drag'){pn.drag={p0:[p.x,p.y],l:pn.l};return true}
       if(step===ST.TRI&&sub==='drag'){ex.drag={p0:[p.x,p.y],t:ex.t};return true}
       if(step===ST.PAT&&sub==='count'){const s=slider();if(p.x>=s.x-3&&p.x<=s.x+s.w+3&&Math.abs(p.y-s.y)<=5){pt.drag=true;setCount(p.x);return true}}
-      if(step===ST.HOLE&&sub==='place'){const h=pickSurface(p.x,p.y);if(h)holePlace(g,h.x,h.y);return true}
+      if(step===ST.HOLE&&sub==='place'){const h=pickSurface(p.x,p.y);
+        /* 指：押したまま動かして位置を合わせ、指をはなしたところに穴をあける */
+        if(S.TOUCH){holeAim=true;hole.on=!!h;if(h){hole.x=h.x;hole.y=h.y}return true}
+        if(h)holePlace(g,h.x,h.y);return true}
       if(!locked()){orbit={x:p.x,y:p.y,yaw:cam.yaw,pitch:cam.pitch};camT=null;S.cv.style.cursor='move';return true}
       return true}
     if(type==='move'){
@@ -2347,10 +2507,11 @@ function CadGame(){
       if(ex.drag){const h=arrowOf(triCenter(ex.t),[0,0,1]),along=alongOf(p,ex.drag.p0,h.dir);ex.t=S.clamp(Math.round((ex.drag.t+along/4)*2)/2,0,10);return true}
       if(pt.drag){setCount(p.x);return true}
       if(orbit){cam.yaw=orbit.yaw-(p.x-orbit.x)*.03;cam.pitch=S.clamp(orbit.pitch+(p.y-orbit.y)*.03,-1.2,1.2);return true}
-      if(step===ST.HOLE&&sub==='place'&&inVP(p)){const h=pickSurface(p.x,p.y);hole.on=!!h;if(h){hole.x=h.x;hole.y=h.y}S.cv.style.cursor=h?'crosshair':'default';return true}
+      if(step===ST.HOLE&&sub==='place'&&(inVP(p)||holeAim)){const h=pickSurface(p.x,p.y);hole.on=!!h;if(h){hole.x=h.x;hole.y=h.y}S.cv.style.cursor=h?'crosshair':'default';return true}
       if(inVP(p)&&!onItem){S.cv.style.cursor=(step===ST.RV&&sub==='drag')?'ew-resize':(step===ST.SK&&sub==='draw')?'crosshair':(sub==='drag')?'move':locked()?'default':'grab';return false}
       return false}
     if(type==='up'){
+      if(holeAim){holeAim=false;if(hole.on)holePlace(g,hole.x,hole.y);else S.toast('体の表面の上で指をはなしてね','',1600);return true}
       if(sk.drawing){sk.drawing=false;sketchDone(g);return true}
       if(rv.drag){rv.drag=null;revolveDone(g);return true}
       if(pn.drag){pn.drag=null;pinDone(g);return true}
@@ -3572,7 +3733,7 @@ S.showCredits=function(){
 (()=>{
 'use strict';
 const S=SW,D=S.DATA,T=S.T,esc=S.esc;
-S.VERSION='2.7.0';
+S.VERSION='2.8.0';
 const $=S.$;
 let curStage=null,curGame=null,mode=null,started=false;
 const results={};                                  /* results[作業id] = {clear,stars,used,miss} */
@@ -3936,7 +4097,7 @@ const lockLand=()=>{try{const o=screen.orientation;if(S.TOUCH&&o&&o.lock){const 
 const goFull=()=>{try{const f=root.requestFullscreen||root.webkitRequestFullscreen;if(!f)return;const r=f.call(root,{navigationUI:'hide'});if(r&&r.then)r.then(lockLand,()=>{});else lockLand()}catch(e){}};
 bf.addEventListener('click',()=>{try{if(fsEl())(document.exitFullscreen||document.webkitExitFullscreen).call(document);else goFull()}catch(e){}});
 /* スマートフォン：最初にボタンを押したとき、全画面＋横向き固定にする（ブラウザのバーで画面がせまくならないように） */
-if(S.TOUCH){let asked=false;document.addEventListener('click',e=>{if(asked||fsEl()||!e.target.closest||!e.target.closest('button'))return;if(e.target.closest('#btnFull'))return;asked=true;goFull()},true)}
+if(S.TOUCH&&!S.PHONE){let asked=false;document.addEventListener('click',e=>{if(asked||fsEl()||!e.target.closest||!e.target.closest('button'))return;if(e.target.closest('#btnFull'))return;asked=true;goFull()},true)}
 window.addEventListener('pointerdown',()=>S.audio(),{once:true});
 window.addEventListener('keydown',()=>S.audio(),{once:true});
 syncSound();hudButtons();hudStars();

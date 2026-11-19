@@ -141,6 +141,10 @@ function setTimer(v,label){const el=$('hudTimer');if(v==null){el.hidden=true;uiC
    「クリック」を「タップ」、「ホイール」を「2本の指」に言いかえる。 */
 const TOUCH=(()=>{try{if(/[?&]touch\b/.test(location.search))return true;return matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches}catch(e){return false}})();
 if(TOUCH)document.documentElement.classList.add('touch');
+/* スマートフォン（画面の短い辺が 600px 以下の、指で操作する端末）。タブレットはパソコンと同じ画面のまま */
+const PHONE=TOUCH&&(/[?&]phone\b/.test(location.search)||Math.min(screen.width,screen.height)<=600);
+if(PHONE)document.documentElement.classList.add('phone');
+const IOS=/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const TOUCH_MAP={
   'Enterキー（または画面のクリック）で会話が進みます。':'画面をタップすると会話が進みます。',
   '操作のきほん。矢印キーでえらんで、Enterキーで決定。数字キーなら番号で直接えらべるよ。マウスでクリックしてもOK！':'操作のきほん。えらびたいものを、指でタップするだけだよ。',
@@ -162,6 +166,9 @@ const TOUCH_MAP={
   '矢印キー：えらぶ　Enter：決定　数字キー：番号でえらぶ　（マウスのクリックでもOK）':'えらびたいものをタップ',
   '矢印キー：えらぶ　Enter：決定　数字キー：番号でえらぶ　（クリックでもOK）':'えらびたいものをタップ',
   'Enter：決定　（クリックでもOK）':'タップで決定',
+  'マウス：体の表面をクリックして穴をあける（X・Y の数字を見ながら）　／　キーボード：矢印で動かして Enter':'指で押したまま動かすと、指の少し上に穴の印と X・Y の数字が出る。合ったところで指をはなすと穴があく',
+  '目の穴の位置をクリック':'指で押したまま位置を合わせて、はなすと穴があく',
+  'いまやること：目の穴の位置をクリック（中心から横 6 mm・上 6 mm）':'いまやること：目の穴の位置をえらぶ（中心から横 6 mm・上 6 mm）',
   '←→：えらぶ　Enter：決定　数字キー 1：合格　2：不合格　（クリックでもOK）':'「合格」か「不合格」をタップ',
   '↑↓：左目・右目を切りかえ　←→：明るさを変える（押しつづけると連続で変わる）　Enter：確定　（ボタンも長押しできます）':'左目・右目をタップで切りかえ、ボタンで明るさを変えて「確定」（ボタンは長押しできます）',
   '←→：回す（押しつづけると連続で回る）　↑↓：ボタンをえらぶ　Enter：決定　数字キー 1：記録　2：ぜんぶ見た　（ボタンも長押しできます）':'ボタンで回して、キズやよごれが見えたら「記録」（ボタンは長押しできます）',
@@ -188,9 +195,9 @@ function mtShow(ms){
   mtPend=false;mtEl.classList.remove('off');clearTimeout(mtTO);mtTO=setTimeout(mtHide,ms||4500);
 }
 const setTag=s=>{const t=touchText(s||'');setText('tag',t);
-  if(!TOUCH||t===mtTag)return;mtTag=t;if(mtBtn)mtBtn.hidden=!t;if(t)mtShow();else{mtPend=false;mtHide()}};
+  if(!PHONE||t===mtTag)return;mtTag=t;if(mtBtn)mtBtn.hidden=!t;if(t)mtShow();else{mtPend=false;mtHide()}};
 const setHint=s=>{const t=touchText(s||'');setText('hint',t);
-  if(!TOUCH)return;mtHint=t;if(mtEl)mtEl.querySelector('p').textContent=t};
+  if(!PHONE)return;mtHint=t;if(mtEl)mtEl.querySelector('p').textContent=t};
 let flashTO=0;
 function flash(txt,kind){const f=$('flash');f.textContent=txt;f.className='flash '+(kind||'');f.hidden=false;void f.offsetWidth;f.classList.add('go');clearTimeout(flashTO);flashTO=setTimeout(()=>{f.hidden=true},1150)}
 let toastTO=0;
@@ -247,30 +254,39 @@ let lastInput=performance.now();const touchInput=()=>{lastInput=performance.now(
 const idleSec=()=>(performance.now()-lastInput)/1000;
 function busy(){return !!dlg||panelOpen()||!!SW.tutActive||!!SW.paused||!!SW.cardOpen}
 function toCanvas(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
-/* 指2本：ピンチで拡大・縮小（マウスのホイールと同じ扱い） */
-const touches=new Map();let pinch=null;
+/* 指2本：ピンチで拡大・縮小。スマホは画面そのものを拡大・移動、タブレットはマウスのホイールと同じ扱い */
+const touches=new Map();let pinch=null,lp=null;
 const tDist=()=>{const[a,b]=[...touches.values()];return Math.hypot(a.x-b.x,a.y-b.y)};
+const phoneLand=()=>PHONE&&isLand();
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')touches.set(e.pointerId,{x:e.clientX,y:e.clientY,e});
   const sc=SW.scene;
   if(touches.size>=2){e.preventDefault();
-    if(!pinch&&sc&&sc.onWheel&&!busy()&&!dlg){
-      if(pointer.down){pointer.down=false;const f=[...touches.values()][0];if(sc.onUp)sc.onUp(toCanvas(f.e))}
-      pinch={d:tDist()}}
+    if(pointer.down){pointer.down=false;loupeHide();lp=null;const f=[...touches.values()][0];
+      if(sc){if(sc.onCancel)sc.onCancel(toCanvas(f.e));else if(sc.onUp)sc.onUp(toCanvas(f.e))}}
+    if(phoneLand()){if(!gest)gestStart()}
+    else if(!pinch&&sc&&sc.onWheel&&!busy()&&!dlg)pinch={d:tDist()};
     return}
   if(dlg){dlgAdvance();e.preventDefault();return}
   if(busy()||!sc||!sc.onDown)return;
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  pointer.down=true;sc.onDown(toCanvas(e));e.preventDefault();
+  pointer.down=true;lp={x:e.clientX,y:e.clientY,moved:false,touch:e.pointerType==='touch'};sc.onDown(toCanvas(e));e.preventDefault();
 });
 cv.addEventListener('pointermove',e=>{
   if(touches.has(e.pointerId))touches.set(e.pointerId,{x:e.clientX,y:e.clientY,e});
   const sc=SW.scene;
+  if(gest){gestMove();return}
   if(pinch){if(touches.size>=2&&sc&&sc.onWheel&&!busy()){const d=tDist(),r=d/Math.max(1,pinch.d);
       if(r>1.1){sc.onWheel(-1);pinch.d=d}else if(r<.9){sc.onWheel(1);pinch.d=d}}
     return}
-  if(sc&&sc.onMove&&!busy())sc.onMove(toCanvas(e),pointer.down)});
-const pUp=e=>{touches.delete(e.pointerId);if(pinch){if(touches.size===0)pinch=null;return}
+  if(sc&&sc.onMove&&!busy())sc.onMove(toCanvas(e),pointer.down);
+  /* スマホ：指でなぞっているときは虫めがねを出す（押しつづけるだけのボタンでは出さない） */
+  if(PHONE&&lp&&lp.touch&&pointer.down){if(!lp.moved&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>10)lp.moved=true;
+    if(lp.moved&&!(sc&&sc.loupeOK&&!sc.loupeOK()))loupeShow(e.clientX,e.clientY);else loupeHide()}});
+const pUp=e=>{touches.delete(e.pointerId);
+  if(gest){if(touches.size===0){gest=null;phoneBacking()}return}
+  if(pinch){if(touches.size===0)pinch=null;return}
+  loupeHide();lp=null;
   if(!pointer.down)return;pointer.down=false;const sc=SW.scene;if(sc&&sc.onUp)sc.onUp(toCanvas(e))};
 cv.addEventListener('pointerup',pUp);cv.addEventListener('pointercancel',pUp);
 cv.addEventListener('wheel',e=>{const sc=SW.scene;if(sc&&sc.onWheel&&!busy()){e.preventDefault();sc.onWheel(e.deltaY)}},{passive:false});
@@ -334,11 +350,115 @@ const gateScene={evening:false,mascot:false,draw(t){
 }};
 
 /* ---------- 画面を16:9でウィンドウに収める（スクロールなし）＋高精細化 ---------- */
-function fit(){const wrap=$('stagewrap'),sc=$('screen');const w=wrap.clientWidth,h=wrap.clientHeight;const sw=Math.max(240,Math.min(w,h*16/9));sc.style.width=sw+'px';sc.style.height=(sw*9/16)+'px';
-  if(TOUCH){const side=Math.max(0,(w-sw)/2);document.documentElement.style.setProperty('--side',side+'px');document.documentElement.classList.toggle('thin',side<56)}
+/* =====================================================================
+   スマートフォン専用の画面（Ver. 2.8）… PHONE のときだけ動く。パソコンには関係しない
+   ・ゲーム画面は画面いっぱい。2本の指で広げる・つまむ・動かすと、拡大・縮小・移動
+   ・指でなぞっている場所は「虫めがね」で指の上に大きく表示
+   ・最初に「タップしてスタート」で全画面・横向きにする
+   ===================================================================== */
+const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0};
+const ZMAX=3;
+const isLand=()=>innerWidth>=innerHeight;
+function phoneFit(wrap,sc,w,h){
+  sc.style.width=w+'px';sc.style.height=h+'px';
+  /* 左右に、ボタンの列のぶん（最低 50px）をあける */
+  const cw=Math.min(w-100,h*16/9),ch=cw*9/16;VIEW.w=w;VIEW.h=h;VIEW.cw=cw;VIEW.ch=ch;
+  cv.style.width=cw+'px';cv.style.height=ch+'px';cv.style.transformOrigin='0 0';
+  const r=wrap.getBoundingClientRect(),side=Math.max(0,(w-cw)/2),root=document.documentElement.style;
+  root.setProperty('--sideL',(r.left+side)+'px');root.setProperty('--sideR',(innerWidth-r.right+side)+'px');
+  root.setProperty('--pfs',Math.max(9,Math.min(h*.0288*1.15,w*.0166)).toFixed(2)+'px');
+  viewClamp();viewApply();phoneBacking();
+}
+function phoneUnfit(sc){cv.style.width=cv.style.height=cv.style.transform='';VIEW.z=1;document.documentElement.classList.remove('zoomed')}
+function phoneBacking(){
+  const dpr=Math.min(window.devicePixelRatio||1,3);
+  const bw=Math.round(clamp(VIEW.cw*Math.min(VIEW.z,2.2)*dpr,640,3200)/16)*16,bh=bw*9/16;
+  if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh}SC=bw/W;
+}
+function viewClamp(){
+  const v=VIEW,W2=v.cw*v.z,H2=v.ch*v.z;
+  v.tx=W2<=v.w?(v.w-W2)/2:clamp(v.tx,v.w-W2,0);
+  v.ty=H2<=v.h?(v.h-H2)/2:clamp(v.ty,v.h-H2,0);
+}
+function viewApply(){
+  cv.style.transform=`translate(${VIEW.tx.toFixed(1)}px,${VIEW.ty.toFixed(1)}px) scale(${VIEW.z.toFixed(4)})`;
+  document.documentElement.classList.toggle('zoomed',VIEW.z>1.02);
+}
+/* 拡大率 z にして、画面の点 (sx,sy) にある場所を動かさない */
+function viewZoomAt(z,sx,sy){const v=VIEW,z0=v.z;z=clamp(z,1,ZMAX);v.tx=sx-(sx-v.tx)*z/z0;v.ty=sy-(sy-v.ty)*z/z0;v.z=z;viewClamp();viewApply()}
+function viewReset(){
+  const v=VIEW,z0=v.z,x0=v.tx,y0=v.ty,t0=performance.now();cancelAnimationFrame(v.anim);
+  const step=t=>{const k=Math.min(1,(t-t0)/220),e=1-Math.pow(1-k,3);v.z=z0+(1-z0)*e;v.tx=x0+((v.w-v.cw)/2-x0)*e;v.ty=y0+((v.h-v.ch)/2-y0)*e;viewClamp();viewApply();
+    if(k<1)v.anim=requestAnimationFrame(step);else phoneBacking()};
+  v.anim=requestAnimationFrame(step);
+}
+/* 2本の指のジェスチャー */
+let gest=null;
+function gestPts(){const sr=$('screen').getBoundingClientRect();const[a,b]=[...touches.values()];
+  return{d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2-sr.left,my:(a.y+b.y)/2-sr.top}}
+function gestStart(){cancelAnimationFrame(VIEW.anim);const p=gestPts();gest={d0:Math.max(20,p.d),z0:VIEW.z,mx:p.mx,my:p.my,tx:VIEW.tx,ty:VIEW.ty,used:false}}
+function gestMove(){if(touches.size<2)return;const p=gestPts(),g=gest;
+  const z=clamp(g.z0*p.d/g.d0,1,ZMAX);
+  /* はじめの2本指の真ん中にあった場所が、いまの真ん中に来るように */
+  VIEW.z=z;VIEW.tx=p.mx-(g.mx-g.tx)*z/g.z0;VIEW.ty=p.my-(g.my-g.ty)*z/g.z0;viewClamp();viewApply();
+  if(Math.abs(z-g.z0)>.03||Math.hypot(p.mx-g.mx,p.my-g.my)>6)g.used=true}
+/* 虫めがね */
+let loupe=null,lctx=null,lpos=null,lraf=0;const LD=128;
+function loupeInit(){loupe=document.createElement('canvas');loupe.className='loupe';loupe.hidden=true;$('screen').append(loupe);lctx=loupe.getContext('2d')}
+function loupeShow(fx,fy){if(!loupe)return;lpos={x:fx,y:fy};if(loupe.hidden){loupe.hidden=false;const tick=()=>{if(!lpos)return;loupeDraw();lraf=requestAnimationFrame(tick)};lraf=requestAnimationFrame(tick)}}
+function loupeHide(){lpos=null;cancelAnimationFrame(lraf);if(loupe)loupe.hidden=true}
+function loupeDraw(){
+  const dpr=Math.min(window.devicePixelRatio||1,3),D=Math.round(LD*dpr);if(loupe.width!==D){loupe.width=loupe.height=D;loupe.style.width=loupe.style.height=LD+'px'}
+  const r=cv.getBoundingClientRect(),sr=$('screen').getBoundingClientRect();
+  const bx=(lpos.x-r.left)/r.width*cv.width,by=(lpos.y-r.top)/r.height*cv.height,src=LD/2*(cv.width/r.width);
+  lctx.save();lctx.clearRect(0,0,D,D);lctx.beginPath();lctx.arc(D/2,D/2,D/2-2*dpr,0,Math.PI*2);lctx.clip();
+  lctx.fillStyle='#000';lctx.fillRect(0,0,D,D);lctx.drawImage(cv,bx-src/2,by-src/2,src,src,0,0,D,D);
+  lctx.strokeStyle='rgba(255,255,255,.9)';lctx.lineWidth=1.5*dpr;lctx.beginPath();
+  lctx.moveTo(D/2-10*dpr,D/2);lctx.lineTo(D/2-3*dpr,D/2);lctx.moveTo(D/2+3*dpr,D/2);lctx.lineTo(D/2+10*dpr,D/2);
+  lctx.moveTo(D/2,D/2-10*dpr);lctx.lineTo(D/2,D/2-3*dpr);lctx.moveTo(D/2,D/2+3*dpr);lctx.lineTo(D/2,D/2+10*dpr);lctx.stroke();lctx.restore();
+  /* 置き場所：指の上。上が足りなければ、指の横（画面の内側） */
+  let cx=lpos.x-sr.left,cy=lpos.y-sr.top-LD*.95;
+  if(cy-LD/2<4){cy=clamp(lpos.y-sr.top,LD/2+4,sr.height-LD/2-4);cx+=(cx>sr.width/2?-1:1)*LD*1.05}
+  cx=clamp(cx,LD/2+4,sr.width-LD/2-4);
+  loupe.style.left=(cx-LD/2)+'px';loupe.style.top=(cy-LD/2)+'px';
+}
+/* 指の位置からどれだけ上を「ねらう点」にするか（CADの穴あけなど、細かい場所をえらぶとき） */
+function fingerOff(){const r=cv.getBoundingClientRect();return 34/(r.width/W||1)}
+/* 全画面 */
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function lockLand(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{})}}catch(e){}}
+function goFull(){try{const el=document.documentElement,f=el.requestFullscreen||el.webkitRequestFullscreen;if(!f){lockLand();return}
+  const r=f.call(el,{navigationUI:'hide'});if(r&&r.then)r.then(lockLand,()=>{});else lockLand()}catch(e){}}
+const standalone=()=>{try{return matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+let pstart=null,pstartMode='';
+function phoneStart(mode){
+  if(!pstart){pstart=document.createElement('div');pstart.className='pstart';pstart.setAttribute('role','dialog');document.body.append(pstart);
+    pstart.addEventListener('click',e=>{const keep=e.target.closest('[data-a=keep]');pstart.hidden=true;if(!keep&&!standalone())goFull()})}
+  pstartMode=mode;const canFS=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+  pstart.innerHTML=mode==='first'
+    ?`<div class="ps-in"><img src="${asset('img/sanpopo.png')}" alt=""><b>三友ワークス</b><p class="ps-go">画面をタップしてスタート</p>
+      <small>${canFS?'全画面・横向きで遊びます。':(IOS&&!standalone()?'iPhone は、共有ボタン →「ホーム画面に追加」から開くと、全画面で遊べます。':'スマホを横向きにして遊んでね。')}<br>2本の指で広げると、画面を拡大できます。</small></div>`
+    :`<div class="ps-in"><p class="ps-go">タップして全画面にもどる</p><button type="button" class="btn ghost" data-a="keep">このまま続ける</button></div>`;
+  pstart.hidden=false;
+}
+function phoneUI(){
+  loupeInit();
+  const zb=document.createElement('button');zb.type='button';zb.id='btnZoom';zb.className='hbtn zoomb';zb.textContent='全体';zb.title='全体を見る（拡大をもとにもどす）';
+  zb.addEventListener('click',viewReset);document.querySelector('.hb-r').prepend(zb);
+  phoneStart('first');
+  const onFS=()=>{if(!fsEl()&&pstart&&pstart.hidden&&!standalone()&&(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))phoneStart('back')};
+  document.addEventListener('fullscreenchange',onFS);document.addEventListener('webkitfullscreenchange',onFS);
+  /* スマホでは、ページそのものの拡大（ダブルタップ・ピンチ）を止める */
+  document.addEventListener('gesturestart',e=>e.preventDefault());
+  document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+}
+if(PHONE)phoneUI();
+function fit(){const wrap=$('stagewrap'),sc=$('screen');const w=wrap.clientWidth,h=wrap.clientHeight;
+  if(PHONE){if(w>=h){phoneFit(wrap,sc,w,h);return}phoneUnfit(sc)}
+  const sw=Math.max(240,Math.min(w,h*16/9));sc.style.width=sw+'px';sc.style.height=(sw*9/16)+'px';
   const dpr=Math.min(window.devicePixelRatio||1,3);const bw=Math.round(clamp(sw*dpr,640,2560)/16)*16,bh=bw*9/16;
   if(cv.width!==bw||cv.height!==bh){cv.width=bw;cv.height=bh}SC=bw/W}
-if(TOUCH){
+if(PHONE){
   /* 時計・残り時間・★を左の列へ、「やること」ボタンを追加。説明のカードを作る */
   const ms=document.createElement('div');ms.className='mside';ms.append($('hudTimer'),$('hudScore'));
   mtBtn=document.createElement('button');mtBtn.type='button';mtBtn.className='mtask-btn';mtBtn.textContent='やること';mtBtn.hidden=true;
@@ -359,7 +479,7 @@ function fadeOut(ms){const f=$('fade');if(reduceMotion){return Promise.resolve()
 function fadeIn(){const f=$('fade');f.classList.remove('on');setTimeout(()=>{if(!f.classList.contains('on'))f.hidden=true},320)}
 
 Object.defineProperty(SW,'SC',{get:()=>SC});
-Object.assign(SW,{asset,W,H,TAU,$,cv,ctx,reduceMotion,clamp,esc,store,settings,saveSettings,
+Object.assign(SW,{asset,PHONE,fingerOff,viewReset,W,H,TAU,$,cv,ctx,reduceMotion,clamp,esc,store,settings,saveSettings,
   setCtx:c=>{C=c},getCtx:()=>C,
   R,circ,ring,line,box,jt,FF,mulberry,hash,gauss,triPath,lamp,avatar,SANPO,
   audio,applyAudio,volNow,bgmHold,tone,noise,sfx,bgm,voicePlay,voiceStop,voiceProbe,voiceCount,idleSec,touchInput,fadeOut,fadeIn,

@@ -7,7 +7,7 @@
 (()=>{
 'use strict';
 const S=SW,D=S.DATA,T=S.T,esc=S.esc;
-S.VERSION='2.7.0';
+S.VERSION='2.8.0';
 const $=S.$;
 let curStage=null,curGame=null,mode=null,started=false;
 const results={};                                  /* results[作業id] = {clear,stars,used,miss} */
@@ -371,7 +371,7 @@ const lockLand=()=>{try{const o=screen.orientation;if(S.TOUCH&&o&&o.lock){const 
 const goFull=()=>{try{const f=root.requestFullscreen||root.webkitRequestFullscreen;if(!f)return;const r=f.call(root,{navigationUI:'hide'});if(r&&r.then)r.then(lockLand,()=>{});else lockLand()}catch(e){}};
 bf.addEventListener('click',()=>{try{if(fsEl())(document.exitFullscreen||document.webkitExitFullscreen).call(document);else goFull()}catch(e){}});
 /* スマートフォン：最初にボタンを押したとき、全画面＋横向き固定にする（ブラウザのバーで画面がせまくならないように） */
-if(S.TOUCH){let asked=false;document.addEventListener('click',e=>{if(asked||fsEl()||!e.target.closest||!e.target.closest('button'))return;if(e.target.closest('#btnFull'))return;asked=true;goFull()},true)}
+if(S.TOUCH&&!S.PHONE){let asked=false;document.addEventListener('click',e=>{if(asked||fsEl()||!e.target.closest||!e.target.closest('button'))return;if(e.target.closest('#btnFull'))return;asked=true;goFull()},true)}
 window.addEventListener('pointerdown',()=>S.audio(),{once:true});
 window.addEventListener('keydown',()=>S.audio(),{once:true});
 syncSound();hudButtons();hudStars();

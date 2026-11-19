@@ -58,16 +58,27 @@ function make(def){
   g.draw=t=>{const c=C();c.save();if(g.shake>0&&!S.reduceMotion)c.translate(Math.sin(g.T*70)*g.shake*3,0);def.draw(g,t);c.restore()};
   const hit0=(p,m)=>g.items.findIndex(it=>!it.off&&p.x>=it.x-m&&p.x<=it.x+it.w+m&&p.y>=it.y-m&&p.y<=it.y+it.h+m);
   /* 指で操作する端末では、少し外れても近くのボタンを押したことにする（パソコンは今までどおり） */
-  const hit=p=>{const i=hit0(p,0);if(i>=0||!S.TOUCH)return i;return hit0(p,4)};
+  const hit=p=>{const i=hit0(p,0);if(i>=0||!S.TOUCH)return i;
+    /* 指の太さぶん（画面で約 16px）広げて、いちばん近いボタンをえらぶ */
+    const r=S.cv.getBoundingClientRect(),m=S.clamp(16/((r.width/S.W)||2),3,9);let best=-1,bd=1e9;
+    g.items.forEach((it,j)=>{if(it.off)return;const dx=Math.max(it.x-p.x,0,p.x-it.x-it.w),dy=Math.max(it.y-p.y,0,p.y-it.y-it.h),d=Math.hypot(dx,dy);if(d<=m&&d<bd){bd=d;best=j}});
+    return best};
   /* スタート直後の0.5秒は決定を受けつけない（会話を Enter 連打で進めた勢いで、まちがって選ばないように） */
   let t0=0;
   const fire=it=>{if(!it||it.off||!g.run||g.done)return;if(it.hold)return;if(performance.now()-t0<500)return;S.sfx.click();it.on&&it.on(it)};
   /* def.ptr(g,'down'|'move'|'up',p) が true を返したら、その作業が自分でマウス操作を処理する（つかんで動かす操作など）
      it.repeat のボタンは、押しつづけるとくり返す */
-  g.onDown=p=>{if(!g.run||g.done)return;g.ptr2=true;if(def.ptr&&def.ptr(g,'down',p))return;const i=hit(p);if(i<0)return;g.fi=i;const it=g.items[i];if(it.hold)g.ptr=true;else{fire(it);if(it.repeat)rep={it,t:.36}}};
+  let pend=-1;   /* 指で押したボタン（指をはなしたときに決定する） */
+  g.onDown=p=>{pend=-1;if(!g.run||g.done)return;g.ptr2=true;if(def.ptr&&def.ptr(g,'down',p))return;const i=hit(p);if(i<0)return;g.fi=i;const it=g.items[i];
+    if(it.hold)g.ptr=true;else if(S.TOUCH&&!it.repeat)pend=i;else{fire(it);if(it.repeat)rep={it,t:.36}}};
   g.onMove=(p,down)=>{if(def.ptr&&g.run&&!g.done&&def.ptr(g,'move',p,down))return;const i=hit(p);if(i>=0&&i!==hover){g.fi=i}hover=i;S.cv.style.cursor=i>=0?'pointer':'default'};
   g.onWheel=d=>{if(def.wheel&&g.run&&!g.done)def.wheel(g,d)};   /* マウスのホイール（CADの拡大・縮小など） */
-  g.onUp=p=>{g.ptr=false;g.ptr2=false;rep=null;if(def.ptr&&g.run&&!g.done)def.ptr(g,'up',p)};
+  g.onUp=p=>{g.ptr=false;g.ptr2=false;rep=null;const pi=pend;pend=-1;if(def.ptr&&g.run&&!g.done)def.ptr(g,'up',p);
+    /* 指：押したボタンの上ではなしたら決定（ずらしてはなすと取り消し。2本指の拡大でボタンが押されないように） */
+    if(pi>=0&&g.run&&!g.done&&hit(p)===pi&&g.items[pi])fire(g.items[pi])};
+  /* スマホ：2本目の指が来たとき（画面の拡大）。とちゅうの操作は「決定しないで」やめる。cancel がない作業は up と同じ */
+  g.onCancel=p=>{pend=-1;if(def.cancel){g.ptr=false;g.ptr2=false;rep=null;if(g.run&&!g.done)def.cancel(g)}else g.onUp(p)};
+  g.loupeOK=()=>def.loupe?!!def.loupe(g):true;
   g.onKey=(k,rep)=>{if(!g.run||g.done)return;if((k==='Enter'||k===' ')&&performance.now()-t0<500)return;if(def.key&&def.key(g,k,rep))return;
     if(k==='Enter'||k===' '){fire(g.items[g.fi]);return}
     if(/^[1-9]$/.test(k)){const i=g.items.findIndex(it=>String(it.n)===k&&!it.off);if(i>=0){g.fi=i;fire(g.items[i])}return}
