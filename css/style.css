@@ -62,7 +62,9 @@ body.ready #app{opacity:1}
 .hbtn svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hbtn:hover:not(:disabled){border-color:var(--accent);background:#223040}
 .hbtn:active:not(:disabled){transform:translateY(1px)}
-.hbtn:disabled{opacity:.28;cursor:default}
+/* Ver. 2.9.4 試作：押せないとき（タイトル・メニュー画面）は、ボタンを見せない（場所は残して、帯がずれないように） */
+.hbtn:disabled{visibility:hidden}
+#hudScore[hidden]{display:none}
 .hbtn .off-x{display:none}
 .hbtn.off{color:var(--muted)}
 .hbtn.off .off-x{display:inline}
@@ -104,14 +106,23 @@ body.ready #app{opacity:1}
 @keyframes bob{to{transform:translateY(.25em)}}
 
 /* チュートリアルのカード */
-.tut{position:absolute;left:3%;right:3%;z-index:5;display:flex;gap:.8em;align-items:center;padding:.7em .9em;background:#fdfaf0;color:#1c2530;border:2px solid var(--accent);border-radius:12px;box-shadow:0 .5em 1.4em rgba(0,0,0,.5)}
+/* チュートリアルの説明カード（Ver. 2.9.4 試作：ボタンを横にならべて低くし、照らした場所の横・上・下に置く） */
+.tut{position:absolute;left:3%;right:3%;z-index:5;display:grid;grid-template-columns:auto 1fr auto;column-gap:.8em;align-items:center;padding:.6em .8em .6em .7em;background:#fdfaf0;color:#1c2530;border:2px solid var(--accent);border-radius:12px;box-shadow:0 .5em 1.4em rgba(0,0,0,.5)}
 .tut.bottom{bottom:3%}
 .tut.top{top:3%}
-.tut img{width:3.4em;height:auto;flex:none}
-.tut-body{flex:1;min-width:0}
-.tut-k{margin:0;font-weight:700;font-size:.78em;color:#8a6200}
-.tut-t{margin:.1em 0 0;font-size:1em;line-height:1.55}
-.tut-btns{display:flex;flex-direction:column;gap:.35em;flex:none}
+.tut.side{top:auto;bottom:3%}
+.tut.stack{grid-template-columns:auto 1fr;row-gap:.55em;align-items:start}
+.tut.stack .tut-btns{grid-column:1 / -1;justify-content:flex-end}
+.tut img{width:3em;height:auto}
+.tut-body{min-width:0}
+.tut-k{margin:0;display:flex;align-items:center;gap:.6em;font-weight:700;font-size:.78em;color:#8a6200}
+.tut-n{font-variant-numeric:tabular-nums;color:#6b5a2a}
+.tut-skip{margin-left:auto;padding:.15em .2em;border:0;background:none;color:#5d6873;font:inherit;font-weight:400;text-decoration:underline;text-underline-offset:.2em;cursor:pointer}
+.tut-skip:hover{color:#1c2530}
+.tut-skip:focus-visible{outline:2px solid #1c2530;outline-offset:2px;border-radius:4px}
+.tut-t{margin:.15em 0 0;font-size:1em;line-height:1.6}
+.tut-btns{display:flex;flex-direction:row;gap:.4em}
+.tut-btns .btn{min-width:6.2em}
 .tut .btn.ghost{color:#1c2530;border-color:#9aa3ad;background:transparent}
 .tut .btn.ghost:hover{background:rgba(0,0,0,.06)}
 
@@ -203,6 +214,15 @@ body.ready #app{opacity:1}
 .split.staff,.split.credits{grid-template-columns:1fr 1fr}
 .detail{min-width:0;min-height:0;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.9em 1.1em;display:flex;flex-direction:column;gap:.5em}
 .empty{margin:auto;text-align:center;color:var(--muted);font-size:.95em;line-height:1.8}
+/* Ver. 2.9.4 試作：まだ何もないときの案内（どこで手に入るか＋すぐ始めるボタン） */
+.guide{margin:auto;display:flex;flex-direction:column;align-items:center;gap:.7em;max-width:30em;padding:1em;text-align:center}
+.guide img{width:3.6em;height:auto;filter:drop-shadow(0 .3em .6em rgba(0,0,0,.45))}
+.guide-h{margin:0;font-size:1em;line-height:1.7;color:var(--text)}
+.guide-s{margin:-.3em 0 0;font-size:.82em;color:var(--muted)}
+.guide-list{list-style:none;margin:0;padding:0;width:100%;display:grid;gap:.3em}
+.guide-list li{display:flex;justify-content:space-between;gap:1em;padding:.45em .8em;border:1px solid var(--line-2);border-radius:8px;font-size:.86em;color:#cdd6de}
+.guide-list b{font-variant-numeric:tabular-nums;color:var(--accent-2)}
+.guide .btn{margin-top:.3em}
 
 .pick{display:grid;grid-template-columns:repeat(3,1fr);gap:.6em}
 .opt{text-align:left;padding:.65em .9em;background:rgba(255,255,255,.05);border:1px solid var(--line-2);color:var(--text);border-radius:10px;cursor:pointer;line-height:1.4;font-size:.92em;display:flex;flex-direction:column;gap:.1em;transition:border-color .15s,background .15s,transform .06s}

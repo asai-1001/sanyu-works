@@ -14,12 +14,27 @@ function runTutorial(steps,opts){
   opts=opts||{};
   return S.guard(new Promise(res=>{tut={steps,i:0,res,opts,t0:performance.now()/1000};S.tutActive=true;render()}));
 }
+/* 説明カードの置き場所。spot の左右に広いすき間があれば、その横に縦長で置く。
+   なければ、spot の上下で広いほうに、spot の幅にそろえて置く。spot がない手順は、これまでどおり card の指定にしたがう。
+   位置はゲーム画面（canvas）の実際の場所から計算する（まわりの黒い帯や、スマホの拡大の分もふくめて） */
+function placeOf(st,el){
+  if(!st.spot)return{cls:st.card==='top'?'top':'bottom'};
+  const[x,y,w,h]=st.spot,W=S.W,H=S.H,L=x,R=W-(x+w),T=y,B=H-(y+h);
+  const cr=S.cv.getBoundingClientRect(),pr=(el.offsetParent||el.parentElement).getBoundingClientRect(),k=cr.width/W;
+  const px=gx=>Math.round(cr.left-pr.left+gx*k)+'px';
+  if(h>=125&&Math.max(L,R)>=100){
+    return L>=R?{cls:'side stack',left:px(4),right:'auto',width:Math.round((L-8)*k)+'px'}:{cls:'side stack',left:px(x+w+4),right:'auto',width:Math.round((R-8)*k)+'px'}}
+  const x0=Math.max(4,Math.min(x,W-4-160)),x1=Math.min(W-4,Math.max(x+w,x0+160));
+  return{cls:(B>=T?'bottom':'top')+' stack',left:px(x0),right:'auto',width:Math.round((x1-x0)*k)+'px'};
+}
 function render(){
   const st=tut.steps[tut.i],n=tut.steps.length,el=S.$('tut');
-  el.hidden=false;el.className='tut '+(st.card==='top'?'top':'bottom');
+  /* Ver. 2.9.4（試作）：説明カードは、照らしている場所（spot）を隠さない側に自動で置く */
+  el.hidden=false;const pl=placeOf(st,el);el.className='tut '+pl.cls;
+  el.style.left=pl.left||'';el.style.right=pl.right||'';el.style.width=pl.width||'';
   el.innerHTML=`<img src="${S.asset(S.mascotSrc||'img/sanpopo.png')}" alt="">
-    <div class="tut-body"><p class="tut-k">${S.esc(tut.opts.title||'チュートリアル')}${n>1?`　${tut.i+1} / ${n}`:''}</p><p class="tut-t">${S.esc(S.touchText(st.text))}</p></div>
-    <div class="tut-btns">${tut.i>0?'<button type="button" class="btn ghost" data-a="prev">もどる</button>':''}<button type="button" class="btn" data-a="next">${tut.i<n-1?'つぎへ':S.esc(tut.opts.last||'はじめる')}</button>${n>1&&tut.i<n-1?'<button type="button" class="btn ghost" data-a="skip">スキップ</button>':''}</div>`;
+    <div class="tut-body"><p class="tut-k">${S.esc(tut.opts.title||'チュートリアル')}${n>1?`<span class="tut-n">${tut.i+1} / ${n}</span>`:''}${n>1&&tut.i<n-1?'<button type="button" class="tut-skip" data-a="skip">スキップ</button>':''}</p><p class="tut-t">${S.esc(S.touchText(st.text))}</p></div>
+    <div class="tut-btns">${tut.i>0?'<button type="button" class="btn ghost" data-a="prev">もどる</button>':''}<button type="button" class="btn" data-a="next">${tut.i<n-1?'つぎへ':S.esc(tut.opts.last||'はじめる')}</button></div>`;
   el.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();const a=b.dataset.a;
     if(a==='prev'){tut.i--;render()}else if(a==='next'&&tut.i<n-1){tut.i++;render()}else end()}));
   clearSpots();(st.ctrl||[]).forEach(k=>{const b=S.ctrlByKey(k);if(b)b.classList.add('spot')});
@@ -44,4 +59,6 @@ S.tutDraw=t=>{
   }
 };
 S.runTutorial=runTutorial;
+/* 画面の大きさが変わったら、説明カードを置きなおす */
+addEventListener('resize',()=>{if(tut)setTimeout(()=>{if(tut)render()},60)});
 })();

@@ -352,10 +352,10 @@ const gateScene={evening:false,mascot:false,draw(t){
 /* ---------- 画面を16:9でウィンドウに収める（スクロールなし）＋高精細化 ---------- */
 /* =====================================================================
    スマートフォン専用の画面（Ver. 2.8）… PHONE のときだけ動く。パソコンには関係しない
-   ・ゲーム画面は画面いっぱい。2本の指で広げる・つまむ・動かすと、拡大・縮小・移動
+   ・ゲーム画面は、見切れない範囲でいちばん大きく（Ver. 2.9.4 試作）。2本の指で広げる・つまむ・動かすと、拡大・縮小・移動
    ・最初に「タップしてスタート」で全画面・横向きにする
    ===================================================================== */
-const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0,mode:'fill'};   /* mode: fill=画面いっぱい  all=全体  free=指で動かした */
+const VIEW={z:1,tx:0,ty:0,w:0,h:0,cw:0,ch:0,anim:0,mode:'all'};   /* mode: all=見切れない範囲でいちばん大きく（ふだん）  free=指で動かした。fill（上下を少し隠して横幅いっぱい）は Ver. 2.9.4 試作から使わない */
 const ZMAX=3;
 const isLand=()=>innerWidth>=innerHeight;
 function phoneFit(wrap,sc,w,h){
@@ -394,7 +394,7 @@ function viewSet(mode){
     if(k<1)v.anim=requestAnimationFrame(step);else phoneBacking()};
   v.anim=requestAnimationFrame(step);
 }
-const viewReset=()=>viewSet('fill');
+const viewReset=()=>viewSet('all');
 /* 拡大率 z にして、画面の点 (sx,sy) にある場所を動かさない */
 function viewZoomAt(z,sx,sy){const v=VIEW,z0=v.z;z=clamp(z,1,ZMAX);v.tx=sx-(sx-v.tx)*z/z0;v.ty=sy-(sy-v.ty)*z/z0;v.z=z;viewClamp();viewApply()}
 /* 2本の指のジェスチャー */
@@ -433,7 +433,8 @@ function pmSync(){if(!pm)return;
   pm.querySelector('.pm-time').textContent=tm&&!tm.hidden&&tm.textContent?tm.textContent:'';
   pm.querySelector('.pm-score').textContent=sc&&!sc.hidden&&sc.textContent?sc.textContent:'';
   pm.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',+b.dataset.v===(settings.vol|0)));
-  pm.querySelector('[data-a=view]').textContent=VIEW.mode==='all'?'画面いっぱいに大きく見る':'全体を見る（小さく）';
+  /* 2本の指で拡大・移動したときだけ「元の大きさにもどす」を出す */
+  {const vb=pm.querySelector('[data-a=view]');vb.textContent='元の大きさにもどす';vb.hidden=VIEW.mode!=='free'}
   pm.querySelector('[data-a=full]').textContent=fsEl()?'全画面をやめる':'全画面にする';
   pm.querySelector('[data-a=full]').hidden=!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
   pm.querySelector('[data-a=task]').hidden=!mtTag;
@@ -461,7 +462,7 @@ function phoneUI(){
     if(b.dataset.v!=null){audio();settings.vol=+b.dataset.v;saveSettings();applyAudio();pmSync();sfx.blip();return}
     const a=b.dataset.a;pmClose();
     if(a==='task')mtShow(8000);
-    else if(a==='view')viewSet(VIEW.mode==='all'?'fill':'all');
+    else if(a==='view')viewSet('all');
     else if(a==='help')$('btnHelp').click();
     else if(a==='pause')$('btnPause').click();
     else if(a==='full'){try{if(fsEl())(document.exitFullscreen||document.webkitExitFullscreen).call(document);else goFull()}catch(_){}}

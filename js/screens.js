@@ -17,7 +17,15 @@ S.unlock=(kind,id)=>{const a=S.store.get(kind,[]);if(!a.includes(id)){a.push(id)
 const owned=kind=>new Set(S.store.get(kind,[]));
 
 function back(){return '<button type="button" class="btn ghost back" data-a="title">← タイトルへ</button>'}
-function wireBack(p){p.querySelectorAll('[data-a="title"]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showTitle()}))}
+function wireBack(p){p.querySelectorAll('[data-a="title"]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showTitle()}))
+  /* Ver. 2.9.4 試作：空の画面の「名前を入れて一日コースへ」ボタン → タイトルの名前の欄へ */
+  p.querySelectorAll('[data-a="course"]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showTitle();S.focusSoon(document.getElementById('pname'))}))}
+/* Ver. 2.9.4 試作：まだ何も持っていないときに、どこで手に入るかを見せる */
+function collectGuide(kind,got,head){
+  const rows=D.DEPTS.map(d=>[d.name+'をクリア',d[kind]||[]]).concat([['一日コースを最後まで遊ぶ',kind==='cards'?D.END_CARDS:D.END_MEMOS]]).filter(r=>r[1].length);
+  return `<div class="guide"><img src="${S.asset('img/sanpopo.png')}" alt=""><p class="guide-h">${head}</p>
+    <ul class="guide-list">${rows.map(([l,ids])=>`<li><span>${esc(l)}</span><b>${ids.filter(i=>got.has(i)).length} / ${ids.length}</b></li>`).join('')}</ul>
+    <button type="button" class="btn" data-a="course">名前を入れて一日コースへ</button></div>`}
 /* タイトルとメニューの背景：会社の前の風景＋立体のさんぽぽ */
 const titleScene={show3d:false,draw(t){S.gateScene.draw(t);if(this.show3d&&S.G3.ok)S.Sanpo.draw(S.getCtx(),26,96,92,78,{yaw:t*.8})}};
 function idle(){if(S.setMascot)S.setMascot(null);titleScene.show3d=false;S.scene=titleScene;S.atTitle=false;S.setControls([]);S.setTimer(null);S.setTag('');S.hideToast();S.setSteps(null);S.bgm('title');S.fadeIn();S.cv.style.cursor='default'}
@@ -145,7 +153,7 @@ S.showBook=function(sel,fromFinal,opt){
     }
     body=pick+head+`<div class="ssec">${sec}</div>`;
   }
-  const detail=!c?`<div class="empty">まだカードがありません。<br>部門をクリアすると、その部門の職種カードがもらえるよ。</div>`:
+  const detail=!c?collectGuide('cards',got,'職種カードは、一日コースで部門をクリアするともらえるよ。'):
     `<div class="dhead"><span class="jobno big">${String(c.no).padStart(2,'0')}</span><div><h3>${esc(c.name)}</h3><p class="sub">${esc(c.dept)}${people.length?`<span class="sbadge">社員紹介 ${people.length}人</span>`:''}</p></div></div>
      <div class="tabs" role="group" aria-label="表示する内容">${TABS.map(([k,l])=>`<button type="button" class="tab" data-tab="${k}" aria-pressed="${k===bookTab}">${l}</button>`).join('')}</div>
      <div class="dbody">${body}</div>`;
@@ -236,7 +244,7 @@ S.showZukan=function(sel){
     <div class="phead">${back()}<h2>技術ずかん</h2><span class="count">${got.size} / ${D.MEMOS.length}</span></div>
     <div class="split">
       <div class="zgrid">${D.MEMOS.map(x=>memoTile(x,got.has(x.id),sel)).join('')}</div>
-      <div class="detail">${m?S.memoCard(m):'<div class="empty">部門をクリアするたびに、ページが増えていくよ。</div>'}</div>
+      <div class="detail">${m?S.memoCard(m):collectGuide('memos',got,'技術ずかんは、一日コースで部門をクリアするたびに、ページが増えていくよ。')}</div>
     </div></div>`,'pmenu');
   wireBack(p);
   p.querySelectorAll('.ztile[data-id]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showZukan(b.dataset.id)}));
@@ -252,7 +260,7 @@ S.showRanking=function(hl){
     <div class="phead">${bk}<h2>ランキング</h2><span class="count">この端末の一日コース（★ ${S.STAGES.length*3} が満点）</span></div>
     ${list.length?`<div class="tablebox"><table><thead><tr><th>順位</th><th>なまえ</th><th class="num">★</th><th class="num">クリア</th><th class="num">作業時間</th><th>称号</th><th>適職診断</th><th>日付</th></tr></thead><tbody>${
       list.map((e,i)=>`<tr${e.id===hl?' class="me"':''}><td class="pos">${i<3?`<span class="medal m${i+1}">${i+1}</span>`:i+1}</td><td>${esc(e.name)}</td><td class="num">${e.stars}</td><td class="num">${e.clears} / ${S.STAGES.length}</td><td class="num">${e.time} 秒</td><td>${esc(e.title||'')}</td><td>${esc(e.job||'')}</td><td>${esc(e.date||'')}</td></tr>`).join('')}</tbody></table></div>`
-      :'<div class="empty">まだ記録がありません。一日コースで最初の1位をねらおう！</div>'}</div>`,'pmenu');
+      :`<div class="guide"><img src="${S.asset('img/sanpopo.png')}" alt=""><p class="guide-h">まだ記録がありません。一日コースを最後まで遊ぶと、ここにのります。</p><p class="guide-s">★が多い順。同じなら、作業時間が短い順です。</p><button type="button" class="btn" data-a="course">名前を入れて一日コースへ</button></div>`}</div>`,'pmenu');
   wireBack(p);
   const f=p.querySelector('[data-a="final"]');if(f)f.addEventListener('click',()=>{S.sfx.blip();S.showFinal()});
   S.focusSoon(p.querySelector('.back'));

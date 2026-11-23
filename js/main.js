@@ -7,7 +7,7 @@
 (()=>{
 'use strict';
 const S=SW,D=S.DATA,T=S.T,esc=S.esc;
-S.VERSION='2.9.3';
+S.VERSION='2.9.4';
 const $=S.$;
 let curStage=null,curGame=null,mode=null,started=false;
 const results={};                                  /* results[作業id] = {clear,stars,used,miss} */
@@ -398,6 +398,8 @@ function frame(now){
   const sc=S.scene;
   if(sc){if(sc.update&&!S.busy())sc.update(dt);sc.draw(Tm);S.setCtx(ctx);ctx.setTransform(S.SC,0,0,S.SC,0,0)}
   S.tutDraw(Tm);idleCheck();
+  /* Ver. 2.9.4 試作：★の合計は、一日コースを遊んでいるあいだだけ上の帯に出す */
+  {const hs=$('hudScore'),show=!!S.running&&mode==='course';if(hs.hidden===show)hs.hidden=!show}
   requestAnimationFrame(frame);
 }
 S.voiceProbe();
