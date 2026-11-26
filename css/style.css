@@ -568,3 +568,80 @@ html.touch .screen textarea,html.touch .screen input{-webkit-user-select:text;us
 .vtime{font-size:.85em;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .sched.day.two{grid-template-columns:1fr 1fr;grid-auto-flow:column;column-gap:1.2em}
 .chip.on:hover:not(:disabled){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* =====================================================================
+   Ver. 2.9.5：職種カード・技術ずかんを、すっきりした見た目に
+   ・左：職種カードは「部門ごとの名簿」、技術ずかんは「数字＋短い見出し」の札
+   ・右：見出し → タブ → 中身 の3段だけ。枠・札・番号を減らす
+   ===================================================================== */
+.zk-tile:focus-visible,.bk-who button:focus-visible,.bk-vlog:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+/* ---- 右の1枚（職種カード・技術ずかん共通） ---- */
+.bk-detail,.zk-detail{padding:1.1em 1.4em;gap:.75em}
+.bk-head{display:flex;flex-direction:column;gap:.1em}
+.bk-head p{margin:0;font-size:.8em;color:var(--muted)}
+.bk-head h3{font-size:1.6em;line-height:1.3;color:#fff}
+.bk-tabs{flex:none}
+.bk-tabs .tab{font-size:.9em;padding:.35em .9em}
+.bk-body{flex:1 0 auto;display:flex;flex-direction:column;gap:.8em}
+.bk-lead{margin:0;font-size:1.05em;line-height:1.7;color:#fff}
+.bk-pts{list-style:none;margin:0;padding:0;display:grid;gap:.45em;font-size:.92em;line-height:1.6;color:#cdd6de}
+.bk-pts li{position:relative;padding-left:1.1em}
+.bk-pts li::before{content:"";position:absolute;left:.1em;top:.62em;width:.4em;height:.4em;border-radius:1px;background:var(--accent)}
+.bk-game{margin:0;display:flex;gap:.8em;align-items:baseline;padding-top:.65em;border-top:1px solid var(--line);font-size:.86em;color:#cdd6de}
+.bk-game span{flex:none;font-weight:700;color:var(--accent)}
+.bk-src{margin:auto 0 0}
+.bk-soon{margin:1.6em 0;text-align:center;color:var(--muted)}
+/* ---- 社員紹介 ---- */
+.bk-ptop{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5em 1em}
+.bk-person{display:flex;align-items:center;gap:.7em}
+.bk-person .sini{width:2.6em;height:2.6em;font-size:.85em}
+.bk-person p{margin:0;display:flex;flex-direction:column;line-height:1.4}
+.bk-person b{font-size:1.05em}
+.bk-person p span{font-size:.8em;color:var(--muted)}
+.bk-vlog{margin-left:.3em;padding:.28em .85em;border:1px solid var(--accent);border-radius:99px;background:transparent;color:var(--accent);font:inherit;font-size:.8em;font-weight:700;cursor:pointer}
+.bk-vlog:hover{background:rgba(246,194,28,.12)}
+.bk-vlog[hidden]{display:none}
+.bk-who{display:inline-flex;border:1px solid var(--line-2);border-radius:99px;overflow:hidden}
+.bk-who button{padding:.28em .95em;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.82em;cursor:pointer}
+.bk-who button+button{border-left:1px solid var(--line-2)}
+.bk-who button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.bk-sec{flex:1 0 auto;display:flex;flex-direction:column;gap:.6em;padding-top:.7em;border-top:1px solid var(--line)}
+.bk-qa h4{margin:0 0 .45em;display:flex;gap:.6em;align-items:baseline;font-size:1em;line-height:1.55}
+.bk-qa .qno{flex:none;margin:0;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.bk-qa .ans{margin:0;font-size:.95em;line-height:1.8;color:#d9e1e8;white-space:pre-line}
+.bk-qnav{margin-top:auto;display:flex;align-items:center;justify-content:flex-end;gap:.7em;font-size:.85em;color:var(--muted);font-variant-numeric:tabular-nums}
+.bk-qnav .btn{padding:.2em .85em;font-size:1em}
+/* 一日の流れ：時刻と、点をつないだ線 */
+.bk-day{list-style:none;margin:0;padding:0;display:grid}
+.bk-day li{position:relative;display:grid;grid-template-columns:3.4em 1fr;column-gap:1.4em;padding:.35em 0;font-size:.92em;line-height:1.5}
+.bk-day li::after{content:"";position:absolute;left:calc(3.4em + .7em - 1px);top:0;bottom:0;width:2px;background:var(--line-2)}
+.bk-day li:first-child::after{top:.95em}
+.bk-day li:last-child::after{bottom:calc(100% - .95em)}
+.bk-day li::before{content:"";position:absolute;z-index:1;left:calc(3.4em + .7em - .3em);top:.75em;width:.6em;height:.6em;border-radius:50%;background:var(--accent)}
+.bk-day time{text-align:right;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.bk-day.two{grid-template-columns:1fr 1fr;grid-auto-flow:column;column-gap:1.4em}
+/* ---- 技術ずかん：左の札 ---- */
+.split.zk{grid-template-columns:40% 1fr}
+.zk-grid{min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:.5em;align-content:start}
+.zk-tile{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:.2em;min-height:4.4em;padding:.55em .8em;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.zk-tile:hover{border-color:var(--line-2)}
+.zk-tile .zk-ic{position:absolute;right:.55em;top:.55em;width:1.4em;height:1.4em;color:#53647a}
+.zk-ic svg{display:block;width:100%;height:100%}
+.zk-num{margin:0;font-size:1.45em;font-weight:700;line-height:1.1;color:#fff;font-variant-numeric:tabular-nums}
+.zk-num small{margin-left:.2em;font-size:.5em;color:var(--muted)}
+.zk-lab{font-size:.78em;line-height:1.3;color:var(--muted)}
+.zk-tile[aria-pressed="true"]{border-color:var(--accent);background:rgba(246,194,28,.08)}
+.zk-tile[aria-pressed="true"] .zk-num,.zk-tile[aria-pressed="true"] .zk-ic{color:var(--accent)}
+.zk-tile.locked{align-items:center;background:transparent;border-style:dashed;cursor:default}
+.zk-tile.locked .zk-num{color:#3f4e5e}
+/* ---- 技術ずかん：右の1ページ ---- */
+.zk-card{display:flex;flex-direction:column;gap:.75em}
+.zk-hero{display:flex;align-items:center;gap:.7em;padding-bottom:.75em;border-bottom:1px solid var(--line)}
+.zk-hero .zk-ic{flex:none;width:2.8em;height:2.8em;color:var(--accent)}
+.zk-hero .zk-num{font-size:2.8em;color:var(--accent)}
+.zk-card h3{font-size:1.25em;color:#fff}
+html.phone .bk-detail,html.phone .zk-detail{padding:.8em 1.1em;gap:.6em}
+/* スマホ：右の1枚が1画面に収まるように、行の間を少し詰める */
+html.phone .bk-lead{line-height:1.55}
+html.phone .bk-pts{gap:.3em;line-height:1.5}
+html.phone .bk-body{gap:.6em}

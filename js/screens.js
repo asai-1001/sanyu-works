@@ -115,56 +115,55 @@ function probeVlog(file,cb){
   }catch(e){cb('none')}
 }
 
-/* ---------- 職種カード ----------
-   opt：{tab:'job'|'talk'|'day'|'vlog', who:何人目, q:何問目, focus:最初にえらぶボタン} */
-const TABS=[['job','仕事内容'],['talk','インタビュー'],['day','一日のスケジュール'],['vlog','Vlog']];
+/* ---------- 職種カード（Ver. 2.9.5：左は2列の札のまま、黄色の「社員紹介」の札を外した。右は見出し・タブ・中身だけ） ----------
+   opt：{tab:'job'|'talk'|'day', who:何人目, q:何問目, focus:最初にえらぶボタン}
+   Vlog はタブではなく、社員の名前の横の「▶ Vlog」ボタンから見る（動画ファイルがまだないときは、押すと「準備中です」と出る） */
+const TABS=[['job','仕事内容'],['talk','インタビュー'],['day','一日の流れ']];
 let bookTab='job';
 S.showBook=function(sel,fromFinal,opt){
   idle();const got=owned('cards');opt=opt||{};
-  S.setHint('部門をクリアすると、その部門の職種カードがもらえます。「インタビュー」「一日のスケジュール」「Vlog」で、その職種の社員を紹介しています。');
+  const how={mech:'設計開発部門',elec:'設計開発部門',operator:'機械加工部門',finish:'機械加工部門',inspector:'機械加工部門',assembler:'組立調整部門',pm:'組立調整部門',se:'一日コース',soumu:'一日コース'};
+  S.setHint('部門をクリアすると、その部門の職種カードがもらえます。「インタビュー」「一日の流れ」で、その職種で働く社員を紹介しています。');
   if(!sel||!got.has(sel))sel=D.CARDS.find(c=>got.has(c.id))?.id||null;
   if(opt.tab)bookTab=opt.tab;if(!TABS.some(t=>t[0]===bookTab))bookTab='job';
   const c=sel?CARD_BY[sel]:null,people=c?staffOf(c.id):[];
   const who=Math.min(Math.max(0,opt.who|0),Math.max(0,people.length-1)),st=people[who]||null;
-  const how={mech:'設計開発部門',elec:'設計開発部門',operator:'機械加工部門',finish:'機械加工部門',inspector:'機械加工部門',assembler:'組立調整部門',pm:'組立調整部門',se:'一日コース',soumu:'一日コース'};
   let body='',qi=0;
   if(c&&bookTab==='job'){
-    body=`<p class="zone">${esc(c.work)}</p><ul class="zpts">${c.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
-     <p class="fine">ゲームで体験した作業：${esc(c.game)}</p><p class="fine">出典：会社の募集職種の資料</p>`;
+    body=`<p class="bk-lead">${esc(c.work)}</p><ul class="bk-pts">${c.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      <p class="bk-game"><span>ゲームで体験</span>${esc(c.game)}</p>`;
   }else if(c&&!st){
-    body=`<div class="empty">この職種の社員紹介は<br>準備中です。</div>`;
+    body=`<p class="bk-soon">この職種の社員紹介は、準備中です。</p>`;
   }else if(c){
-    const pick=people.length>1?`<div class="chips who" role="group" aria-label="紹介する社員">${people.map((p,i)=>`<button type="button" class="chip${i===who?' on':''}" data-who="${i}" aria-pressed="${i===who}">${esc(staffName(p))}</button>`).join('')}</div>`:'';
-    const head=`<div class="shead"><span class="sini" aria-hidden="true">${esc(st.initial||'？')}</span><div><p>${esc([st.dept,st.role].filter(Boolean).join('　'))}</p><p class="sname">${st.joined?esc(st.joined+'年入社')+'　':''}<b>${esc(staffName(st))}</b></p></div></div>`;
+    const pick=people.length>1?`<div class="bk-who" role="group" aria-label="紹介する社員">${people.map((p,i)=>`<button type="button" data-who="${i}" aria-pressed="${i===who}">${esc(staffName(p))}</button>`).join('')}</div>`:'';
+    const head=`<div class="bk-person"><span class="sini" aria-hidden="true">${esc(st.initial||'？')}</span>
+      <p><b>${esc(staffName(st))}</b><span>${esc([st.role||st.dept,st.joined?st.joined+'年入社':''].filter(Boolean).join('・'))}</span></p>
+      <button type="button" class="bk-vlog" data-a="vlog"${st.vlog?'':' hidden'}><span aria-hidden="true">▶</span> Vlog</button></div>`;
     let sec='';
     if(bookTab==='talk'){
       const n=st.interview.length;qi=Math.min(Math.max(0,opt.q|0),Math.max(0,n-1));
-      sec=!n?`<div class="empty">インタビューは準備中です。</div>`:
-        `<div class="qa1"><p class="qno">Q${qi+1}<small> / ${n}</small></p><h4>${esc(st.interview[qi].q)}</h4><p class="ans">${esc(st.interview[qi].a||'（準備中です）')}</p></div>
-         ${n>1?`<div class="qnav"><button type="button" class="btn ghost" data-q="${qi-1}"${qi<=0?' disabled':''}>◀ 前の質問</button><button type="button" class="btn ghost" data-q="${qi+1}"${qi>=n-1?' disabled':''}>次の質問 ▶</button></div>`:''}`;
-    }else if(bookTab==='day'){
-      sec=!st.schedule.length?`<div class="empty">一日のスケジュールは準備中です。</div>`:
-        `<ol class="sched day${st.schedule.length>6?' two':''}"${st.schedule.length>6?` style="grid-template-rows:repeat(${Math.ceil(st.schedule.length/2)},auto)"`:''}>${st.schedule.map(x=>`<li><time>${esc(x.time)}</time><span>${esc(x.text)}</span></li>`).join('')}</ol>`;
+      sec=!n?`<p class="bk-soon">インタビューは、準備中です。</p>`:
+        `<div class="bk-qa"><h4><span class="qno">Q${qi+1}</span>${esc(st.interview[qi].q)}</h4><p class="ans">${esc(st.interview[qi].a||'（準備中です）')}</p></div>
+         ${n>1?`<div class="bk-qnav"><button type="button" class="btn ghost" data-q="${qi-1}"${qi<=0?' disabled':''} aria-label="前の質問">◀</button><span>${qi+1} / ${n}</span><button type="button" class="btn ghost" data-q="${qi+1}"${qi>=n-1?' disabled':''} aria-label="次の質問">▶</button></div>`:''}`;
     }else{
-      const stt=st.vlog?vlogState.get(st.vlog):'none';
-      sec=`<div class="vbox${stt==='none'?' none':''}" data-vfile="${esc(st.vlog)}">${stt==='none'
-        ?`<p class="vsoon">Vlogは準備中です。</p>`
-        :`<button type="button" class="btn vplay" data-a="vlog"><span aria-hidden="true">▶</span> ${esc(staffName(st))}のVlogを見る</button><p class="fine vmsg">${esc(staffName(st))}の仕事や一日を、動画で紹介します。</p>`}</div>`;
+      sec=!st.schedule.length?`<p class="bk-soon">一日の流れは、準備中です。</p>`:
+        `<ol class="bk-day${st.schedule.length>6?' two':''}"${st.schedule.length>6?` style="grid-template-rows:repeat(${Math.ceil(st.schedule.length/2)},auto)"`:''}>${st.schedule.map(x=>`<li><time>${esc(x.time)}</time><span>${esc(x.text)}</span></li>`).join('')}</ol>`;
     }
-    body=pick+head+`<div class="ssec">${sec}</div>`;
+    body=`<div class="bk-ptop">${head}${pick}</div><div class="bk-sec">${sec}</div>`;
   }
   const detail=!c?collectGuide('cards',got,'職種カードは、一日コースで部門をクリアするともらえるよ。'):
-    `<div class="dhead"><span class="jobno big">${String(c.no).padStart(2,'0')}</span><div><h3>${esc(c.name)}</h3><p class="sub">${esc(c.dept)}${people.length?`<span class="sbadge">社員紹介 ${people.length}人</span>`:''}</p></div></div>
-     <div class="tabs" role="group" aria-label="表示する内容">${TABS.map(([k,l])=>`<button type="button" class="tab" data-tab="${k}" aria-pressed="${k===bookTab}">${l}</button>`).join('')}</div>
-     <div class="dbody">${body}</div>`;
+    `<header class="bk-head"><p>${esc(c.dept)}</p><h3>${esc(c.name)}</h3></header>
+     <div class="tabs bk-tabs" role="group" aria-label="表示する内容">${TABS.map(([k,l])=>`<button type="button" class="tab" data-tab="${k}" aria-pressed="${k===bookTab}">${l}</button>`).join('')}</div>
+     <div class="bk-body">${body}</div>
+     ${bookTab==='job'?'<p class="fine bk-src">出典：会社の募集職種の資料</p>':''}`;
   const bk=fromFinal&&S.lastRun?'<button type="button" class="btn ghost back" data-a="final">← 成績へもどる</button>':back();
   const p=S.panel(`<div class="pin">
-    <div class="phead">${bk}<h2>職種カード</h2><span class="count">${got.size} / ${D.CARDS.length}</span></div>
+    <div class="phead">${bk}<h2>職種カード</h2><span class="count">${got.size} / ${D.CARDS.length} 枚</span></div>
     <div class="split">
       <div class="cards">${D.CARDS.map(k=>got.has(k.id)
-        ?`<button type="button" class="card" data-id="${k.id}" aria-pressed="${k.id===sel}"><span class="jobno">${String(k.no).padStart(2,'0')}</span><span><b>${esc(k.name)}</b><small>${esc(k.dept)}${staffOf(k.id).length?'<i class="hasstaff">社員紹介</i>':''}</small></span></button>`
+        ?`<button type="button" class="card" data-id="${k.id}" aria-pressed="${k.id===sel}"><span class="jobno">${String(k.no).padStart(2,'0')}</span><span><b>${esc(k.name)}</b><small>${esc(k.dept)}</small></span></button>`
         :`<div class="card locked"><span class="lockbox">?</span><span><b>？？？</b><small>${how[k.id]}をクリア</small></span></div>`).join('')}</div>
-      <div class="detail">${detail}</div>
+      <div class="detail bk-detail">${detail}</div>
     </div></div>`,'pmenu');
   const again=o=>S.showBook(sel,fromFinal,Object.assign({who},o));
   wireBack(p);const f=p.querySelector('[data-a="final"]');if(f)f.addEventListener('click',()=>{S.sfx.blip();S.showFinal()});
@@ -173,12 +172,10 @@ S.showBook=function(sel,fromFinal,opt){
   p.querySelectorAll('[data-who]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();again({who:+b.dataset.who,focus:'[data-who="'+b.dataset.who+'"]'})}));
   p.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();const q=+b.dataset.q,fw=q>qi?1:-1;again({q,focus:['[data-q="'+(q+fw)+'"]:not(:disabled)','[data-q="'+(q-fw)+'"]']})}));
   const vb=p.querySelector('[data-a="vlog"]');
-  if(vb)vb.addEventListener('click',()=>{S.sfx.blip();S.showVlog(st,()=>S.showBook(sel,fromFinal,{tab:'vlog',who,focus:['[data-a="vlog"]','[data-tab="vlog"]']}))});
-  /* Vlog タブ：動画ファイルがあるかを確かめて、なければ「準備中です」に切りかえる */
-  const box=p.querySelector('.vbox[data-vfile]');
-  if(box&&st&&st.vlog)probeVlog(st.vlog,r=>{if(!box.isConnected)return;
-    if(r==='none'&&!box.classList.contains('none')){const had=document.activeElement===vb;box.classList.add('none');box.innerHTML='<p class="vsoon">Vlogは準備中です。</p>';if(had)S.focusSoon(p.querySelector('[data-tab="vlog"]'))}});
-  const pickF=()=>{for(const q of [].concat(opt.focus||[])){const e=p.querySelector(q);if(e)return e}return null};
+  if(vb){
+    vb.addEventListener('click',()=>{S.sfx.blip();const t=bookTab;S.showVlog(st,()=>S.showBook(sel,fromFinal,{tab:t,who,focus:['[data-a="vlog"]','[data-tab="'+t+'"]']}))});
+  }
+  const pickF=()=>{for(const q of [].concat(opt.focus||[])){const e=p.querySelector(q);if(e&&!e.hidden)return e}return null};
   S.focusSoon(pickF()||p.querySelector('.card[aria-pressed="true"]')||p.querySelector('.back'));
 };
 
@@ -229,26 +226,29 @@ S.showVlog=function(st,onBack){
   S.focusSoon(p.querySelector('[data-a="vback"]'));
 };
 
-/* ---------- 技術ずかん ---------- */
+/* ---------- 技術ずかん（Ver. 2.9.5：左は「数字＋短い見出し」の札、くわしい説明は右だけ） ---------- */
+/* 札に出す短い見出し（8文字くらいまで。くわしいタイトルは右に出す） */
+const MEMO_SHORT={ikkan:'設計から出荷まで',products:'ナノの位置決め',machining:'精密加工',polish:'Oリング面磨き',inspect:'検査設備',clean:'クリーンルーム',sites:'常陸太田と日立'};
 function memoTile(m,on,selId){return on
-  ?`<button type="button" class="ztile" data-id="${m.id}" aria-pressed="${m.id===selId}"><span class="zi">${D.ICONS[m.icon]||''}</span><span class="zb">${esc(m.big)}<small>${esc(m.unit)}</small></span><span class="zt">${esc(m.title)}</span></button>`
-  :`<div class="ztile locked"><span class="zi">?</span><span class="zt">？？？</span></div>`}
-S.memoCard=m=>`<div class="zcard"><div class="zcard-top"><span class="zi big">${D.ICONS[m.icon]||''}</span><div><p class="zbig">${esc(m.big)}<small>${esc(m.unit)}</small></p><h3>${esc(m.title)}</h3></div></div>
-  <p class="zone">${esc(m.one)}</p><ul class="zpts">${m.points.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p class="fine">出典：${esc(m.src)}</p></div>`;
+  ?`<button type="button" class="zk-tile" data-id="${m.id}" aria-pressed="${m.id===selId}" aria-label="${esc(m.big+m.unit+'　'+m.title)}"><span class="zk-ic" aria-hidden="true">${D.ICONS[m.icon]||''}</span><span class="zk-num">${esc(m.big)}<small>${esc(m.unit)}</small></span><span class="zk-lab">${esc(MEMO_SHORT[m.id]||m.title)}</span></button>`
+  :`<div class="zk-tile locked" aria-label="まだ見つけていないページ"><span class="zk-num">？</span></div>`}
+S.memoCard=m=>`<div class="zk-card"><div class="zk-hero"><span class="zk-ic" aria-hidden="true">${D.ICONS[m.icon]||''}</span><p class="zk-num">${esc(m.big)}<small>${esc(m.unit)}</small></p></div>
+  <h3>${esc(m.title)}</h3><p class="bk-lead">${esc(m.one)}</p><ul class="bk-pts">${m.points.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+  <p class="fine bk-src">出典：${esc(m.src)}</p>`;
 S.showZukan=function(sel){
   idle();const got=owned('memos');
   S.setHint('三友製作所の技術と設備を、数字で紹介するずかんです。部門をクリアすると増えていきます。');
   if(!sel||!got.has(sel))sel=D.MEMOS.find(m=>got.has(m.id))?.id||null;
   const m=sel?MEMO_BY[sel]:null;
   const p=S.panel(`<div class="pin">
-    <div class="phead">${back()}<h2>技術ずかん</h2><span class="count">${got.size} / ${D.MEMOS.length}</span></div>
-    <div class="split">
-      <div class="zgrid">${D.MEMOS.map(x=>memoTile(x,got.has(x.id),sel)).join('')}</div>
-      <div class="detail">${m?S.memoCard(m):collectGuide('memos',got,'技術ずかんは、一日コースで部門をクリアするたびに、ページが増えていくよ。')}</div>
+    <div class="phead">${back()}<h2>技術ずかん</h2><span class="count">${got.size} / ${D.MEMOS.length} ページ</span></div>
+    <div class="split zk">
+      <div class="zk-grid">${D.MEMOS.map(x=>memoTile(x,got.has(x.id),sel)).join('')}</div>
+      <div class="detail zk-detail">${m?S.memoCard(m):collectGuide('memos',got,'技術ずかんは、一日コースで部門をクリアするたびに、ページが増えていくよ。')}</div>
     </div></div>`,'pmenu');
   wireBack(p);
-  p.querySelectorAll('.ztile[data-id]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showZukan(b.dataset.id)}));
-  S.focusSoon(p.querySelector('.ztile[aria-pressed="true"]')||p.querySelector('.back'));
+  p.querySelectorAll('.zk-tile[data-id]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showZukan(b.dataset.id)}));
+  S.focusSoon(p.querySelector('.zk-tile[aria-pressed="true"]')||p.querySelector('.back'));
 };
 
 /* ---------- ランキング ---------- */
