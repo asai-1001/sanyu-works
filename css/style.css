@@ -209,7 +209,15 @@ body.ready #app{opacity:1}
 .phead{display:flex;align-items:center;gap:1em;flex-wrap:wrap;padding-bottom:.5em;border-bottom:1px solid var(--line)}
 .phead h2{padding-left:.6em;border-left:.25em solid var(--accent);line-height:1.2}
 .phead .count{margin-left:auto;font-size:.85em;color:var(--muted);font-variant-numeric:tabular-nums}
-.btn.back{padding:.3em .9em;font-size:.85em}
+/* もどるボタン（Ver. 2.9.6）：見出しの左に、大きめの紺のボタン。左向きの矢印を黄色い丸に入れる */
+.btn.back{gap:.55em;padding:.5em 1.1em .5em .55em;font-size:.95em;font-weight:700;background:#22364c;color:#fff;box-shadow:inset 0 0 0 1.5px #4d6a8a,0 .14em 0 #0b1520}
+.btn.back:hover{background:#2b4560;box-shadow:inset 0 0 0 1.5px var(--accent),0 .14em 0 #0b1520;filter:none}
+.btn.back:active{box-shadow:inset 0 0 0 1.5px var(--accent);transform:translateY(.12em)}
+.btn.back:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bk-ic{position:relative;flex:none;width:1.45em;height:1.45em;border-radius:50%;background:var(--accent)}
+.bk-ic::before{content:"";position:absolute;left:50%;top:50%;width:.42em;height:.42em;border-left:.16em solid var(--accent-ink);border-bottom:.16em solid var(--accent-ink);transform:translate(-30%,-50%) rotate(45deg)}
+.bk-esc{margin-left:.2em;padding:.05em .4em;border:1px solid #5a7593;border-radius:4px;font:inherit;font-size:.68em;font-weight:400;color:#b9c8d6}
+html.touch .bk-esc,html.phone .bk-esc{display:none}
 .split{flex:1;min-height:0;display:grid;grid-template-columns:42% 1fr;gap:3%}
 .split.staff,.split.credits{grid-template-columns:1fr 1fr}
 .detail{min-width:0;min-height:0;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.9em 1.1em;display:flex;flex-direction:column;gap:.5em}
@@ -645,3 +653,7 @@ html.phone .bk-detail,html.phone .zk-detail{padding:.8em 1.1em;gap:.6em}
 html.phone .bk-lead{line-height:1.55}
 html.phone .bk-pts{gap:.3em;line-height:1.5}
 html.phone .bk-body{gap:.6em}
+/* Ver. 2.9.6：タイトルのメニューを下に寄せて、背景の本社工場の「SUNYOU」の看板が見えるようにする */
+.title-grid{margin:auto auto 1.9em}
+html.phone .title-grid{margin:auto auto .2em}
+html.phone .title-r{padding:.75em 1.1em;gap:.4em}

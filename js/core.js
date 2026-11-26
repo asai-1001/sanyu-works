@@ -156,10 +156,6 @@ const TOUCH_MAP={
   '3Dの画面の下に、いまやることが出るよ。何もないところをドラッグすると、形をぐるっと回して見られる。ホイールで拡大もできるよ。':'いまやることは、画面の上の帯に出るよ。3Dの画面の何もないところを指でなぞると、形をぐるっと回して見られる。2本の指で広げると拡大できるよ。',
   'キーボードなら、数字キーでツール、矢印キーでえらぶ・値を変える、Enterで決定。前半は形を作る「機械設計」、後半は回路を作る「電気設計」。制限時間は210秒！':'前半は形を作る「機械設計」、後半は回路を作る「電気設計」。制限時間は210秒！',
   '図面の中の、四角で囲まれたところを順に見て、仕様書とちがうところでEnter（またはクリック）。まちがいは3か所あるよ。':'図面の中の、四角で囲まれたところを順に見て、仕様書とちがうところをタップ。まちがいは3か所あるよ。',
-  'まずは、ねじ締め。右の図の4本のねじを、矢印キーでえらんでEnter（またはクリック）で締めるよ。':'まずは、ねじ締め。右の図の4本のねじを、タップして締めるよ。',
-  'ねじが終わったら配線。線のはしをつかんで、配線図どおりの番号の端子まで引っぱってつなぐよ。キーボードなら、↑↓で線をえらんでEnter、つぎに端子をえらんでEnter。制限時間は120秒！':'ねじが終わったら配線。線のはしを指でつかんで、配線図どおりの番号の端子まで引っぱってつなぐよ。制限時間は120秒！',
-  '↑↓キーで左目・右目を切りかえて、←→キーで明るさを変える。ボタンのクリックでもOK。':'左目・右目をタップで切りかえて、ボタンで明るさを変えるよ。',
-  '左右とも緑のはんい（68〜72%）に入ったら、Enterで確定。部品には個体差があるから、つまみの数字は左右でちがってくるよ。制限時間は60秒！':'左右とも緑のはんい（68〜72%）に入ったら「確定」。部品には個体差があるから、つまみの数字は左右でちがってくるよ。制限時間は60秒！',
   '外観検査では、←→キーでさんぽぽを回して、1周ぜんぶ見る。白い線（キズ）や黒い点（よごれ）が正面に見えたら「記録」。':'外観検査では、ボタンでさんぽぽを回して、1周ぜんぶ見る。白い線（キズ）や黒い点（よごれ）が正面に見えたら「記録」。',
   '「押しつづける」ボタンは、EnterかSpaceを押しつづけてもOK。緑のはんいで手をはなすのがコツ。':'「押しつづける」ボタンを指で押しつづけて、緑のはんいで手をはなすのがコツ。',
   '削り終わったら、後半は仕上げ。まずバリ取り。マウスなら、部品のふちの上で押したまま、道具でぐるっとなぞる。キーボードなら←→で道具をふちに沿って動かす（押しつづけると連続で動く）。':'削り終わったら、後半は仕上げ。まずバリ取り。部品のふちの上を指で押したまま、道具でぐるっとなぞる。',
@@ -174,11 +170,19 @@ const TOUCH_MAP={
   '目の穴の位置をクリック':'指で押したまま位置を合わせて、はなすと穴があく',
   'いまやること：目の穴の位置をクリック（中心から横 6 mm・上 6 mm）':'いまやること：目の穴の位置をえらぶ（中心から横 6 mm・上 6 mm）',
   '←→：えらぶ　Enter：決定　数字キー 1：合格　2：不合格　（クリックでもOK）':'「合格」か「不合格」をタップ',
-  '↑↓：左目・右目を切りかえ　←→：明るさを変える（押しつづけると連続で変わる）　Enter：確定　（ボタンも長押しできます）':'左目・右目をタップで切りかえ、ボタンで明るさを変えて「確定」（ボタンは長押しできます）',
   '←→：回す（押しつづけると連続で回る）　↑↓：ボタンをえらぶ　Enter：決定　数字キー 1：記録　2：ぜんぶ見た　（ボタンも長押しできます）':'ボタンで回して、キズやよごれが見えたら「記録」（ボタンは長押しできます）',
   '→：近づける　←：はなす（押しつづけると連続で動く）　↑↓：速さ切りかえ　Enter：登録　（下のボタンでもOK）':'ボタンで近づける・はなす（押しつづけると連続で動く）。速さの切りかえと「登録」もボタンで',
   'Enter または Space を押しつづける（ボタンを押しつづけてもOK）。緑のはんいで手をはなす。':'ボタンを指で押しつづける。緑のはんいで手をはなす。',
   'Enter または Space を押しつづける（ボタンを押しつづけてもOK）。':'ボタンを指で押しつづける。',
+  /* Ver. 2.9.6：組立（ねじは円をえがいて締める・配線は端子の名前）と、調整（つまみを回す） */
+  'まずは、ねじ締め。右の図のねじを1本えらんだら、そのまわりで、ドライバーを回すように右回りに円をえがいて締めるよ。キーボードなら、Enterを押しつづけると回る。':'まずは、ねじ締め。右の図のねじを1本タップしたら、そのまわりを指で右回りにぐるぐるなぞって締めるよ。「回す」ボタンを押しつづけてもOK。',
+  'ねじが終わったら配線。左の配線図で線の色をさがして、基板に印刷された同じ名前の端子まで、線の先を引っぱってつなぐよ。キーボードなら、↑↓で線をえらんでEnter、つぎに端子をえらんでEnter。制限時間は120秒！':'ねじが終わったら配線。左の配線図で線の色をさがして、基板に印刷された同じ名前の端子まで、線の先を指で引っぱってつなぐよ。制限時間は120秒！',
+  'つまみを押したまま回してね（ホイールでもOK）。キーボードなら、↑↓で左目・右目を切りかえて、←→で回す。':'つまみを指で押さえたまま、ぐるっと回してね。',
+  '左右とも緑のはんい（68〜72%）に入ったら、Enterで確定。部品には個体差があるから、つまみの位置は左右でちがってくるよ。制限時間は60秒！':'左右とも緑のはんい（68〜72%）に入ったら「確定」。部品には個体差があるから、つまみの位置は左右でちがってくるよ。制限時間は60秒！',
+  'マウス・指：つまみを押したまま回す（ホイールでもOK）　／　キーボード：↑↓ 左目・右目の切りかえ　←→ 回す　Enter 確定':'つまみを指で押さえたまま回す。合ったら「確定」',
+  '矢印キー：ねじをえらぶ　Enter：決定してそのまま押しつづけると回る　（マウス・指：ねじを押して、まわりで円をえがく）':'締めるねじをタップ。そのまわりを指で右回りになぞると締まる',
+  'マウス・指：ねじのまわりで、右回りに円をえがく　／　キーボード：Enter・Space・→ を押しつづける':'ねじのまわりを指で右回りになぞる（「回す」ボタンを押しつづけてもOK）',
+  'マウス・指：線の先（銅線）を押したまま、端子まで引っぱってはなす　／　キーボード：↑↓で線をえらんでEnter → ↑↓で端子をえらんでEnter':'線の先（銅線）を指で押さえたまま、端子まで引っぱってはなす',
 };
 function touchText(s){
   if(!TOUCH||!s)return s;if(TOUCH_MAP[s])return TOUCH_MAP[s];
@@ -314,7 +318,7 @@ const gateScene={evening:false,mascot:false,draw(t){
   C.fillStyle=g;C.fillRect(0,0,W,112);
   if(ev){for(let i=0;i<26;i++){const x=hash(i,1)*W,y=hash(i,2)*48,a=.35+.4*Math.abs(Math.sin(t*.8+i));R(x,y,.7,.7,`rgba(255,255,255,${rm?.6:a})`)}
     const sg=C.createRadialGradient(248,104,2,248,104,70);sg.addColorStop(0,'rgba(255,214,140,.75)');sg.addColorStop(1,'rgba(255,214,140,0)');C.fillStyle=sg;C.fillRect(170,40,150,80);circ(248,102,9,'#ffd98a')}
-  else{const sg=C.createRadialGradient(262,26,2,262,26,46);sg.addColorStop(0,'rgba(255,255,240,.9)');sg.addColorStop(1,'rgba(255,255,240,0)');C.fillStyle=sg;C.fillRect(210,0,110,76);circ(262,26,7,'#fffbe0')}
+  else{const sg=C.createRadialGradient(302,16,2,302,16,40);sg.addColorStop(0,'rgba(255,255,240,.9)');sg.addColorStop(1,'rgba(255,255,240,0)');C.fillStyle=sg;C.fillRect(250,0,70,60);circ(302,16,6,'#fffbe0')}
   /* 雲 */
   const cloud=(x,y,s,a)=>{C.fillStyle=ev?`rgba(250,190,160,${a*.6})`:`rgba(255,255,255,${a})`;for(const[dx,dy,r]of[[0,0,7],[8,-3,9],[18,-1,8],[27,1,6],[12,3,8]]){C.beginPath();C.ellipse(x+dx*s,y+dy*s,r*s*1.25,r*s*.62,0,0,TAU);C.fill()}};
   const dr=rm?0:t*1.6;
@@ -323,28 +327,59 @@ const gateScene={evening:false,mascot:false,draw(t){
   const hill=(base,amp,f,ph,col)=>{C.fillStyle=col;C.beginPath();C.moveTo(0,112);for(let x=0;x<=W;x+=4)C.lineTo(x,base+Math.sin(x*f+ph)*amp+Math.sin(x*f*2.7+ph*2)*amp*.4);C.lineTo(W,112);C.closePath();C.fill()};
   hill(84,7,.021,1,ev?'#3a3458':'#86aacb');hill(92,6,.034,2.2,ev?'#2a2c44':'#5f8f78');hill(100,4,.05,.4,ev?'#22283a':'#4a7d5e');
   R(0,108,W,30,ev?'#22283a':'#4a7d5e');   /* 山と地面のあいだを塗る（前の画面が残らないように） */
-  /* 社屋 */
-  const wall=ev?'#8a8794':'#e6e8e4',wall2=ev?'#75727f':'#cfd3cf';
-  R(52,58,216,78,wall);R(52,58,216,3,ev?'#a3a0ab':'#f6f7f4');R(48,54,224,5,ev?'#4f5560':'#6f7a84');R(52,96,216,1,wall2);R(52,78,216,1,wall2);
-  R(230,44,22,10,ev?'#5d6370':'#8a949d');R(234,40,4,4,ev?'#4f5560':'#6f7a84');
-  for(let r=0;r<3;r++)for(let c=0;c<11;c++){const x=62+c*18,y=64+r*18;if(r===2&&x>130&&x<180)continue;const lit=ev&&hash(c,r)>.32;
-    R(x-.5,y-.5,13,10,ev?'#5a5866':'#b9bfc0');
-    if(lit){R(x,y,12,9,'#f6dd8c');R(x,y,12,3,'#fff0b8')}else{R(x,y,12,9,ev?'#39445e':'#6f9cc4');R(x,y,12,3,ev?'#44506c':'#9cc3e2');C.fillStyle='rgba(255,255,255,.18)';C.beginPath();C.moveTo(x+2,y+9);C.lineTo(x+7,y);C.lineTo(x+9,y);C.lineTo(x+4,y+9);C.closePath();C.fill()}
-    R(x+5.7,y,.6,9,ev?'#5a5866':'#b9bfc0')}
-  /* 看板 */
-  R(104,41,112,14,'#123f7c');R(104,41,112,1.2,'#2f6ab8');R(104,53.8,112,1.2,'#0c2d5a');jt('株式会社 三友製作所',160,43.6,'#ffffff',8,'center');
-  /* 玄関 */
-  R(132,110,56,4,ev?'#4f5560':'#6f7a84');R(134,114,2,22,'#59626b');R(184,114,2,22,'#59626b');
-  R(142,114,36,22,'#27303a');R(144,116,15,20,ev?'#d7b25e':'#7fb0d4');R(161,116,15,20,ev?'#d7b25e':'#7fb0d4');R(144,116,15,5,ev?'#f2d68a':'#b5d6ec');R(161,116,15,5,ev?'#f2d68a':'#b5d6ec');
-  if(ev){const dg=C.createRadialGradient(160,136,2,160,136,34);dg.addColorStop(0,'rgba(255,220,140,.35)');dg.addColorStop(1,'rgba(255,220,140,0)');C.fillStyle=dg;C.fillRect(120,116,80,50)}
-  /* 地面・道 */
-  R(0,136,W,44,ev?'#2b2f2e':'#59614f');R(0,136,W,2,ev?'#3c4240':'#7f8a72');
-  C.fillStyle=ev?'#474a4c':'#8b8f90';C.beginPath();C.moveTo(142,136);C.lineTo(178,136);C.lineTo(206,180);C.lineTo(114,180);C.closePath();C.fill();
+  /* 社屋（Ver. 2.9.6：本社工場の写真に合わせた。左が紫がかった灰色の波板の建物、右が角の丸い赤い建物に白い「SUNYOU」） */
+  const D2=(day,eve)=>ev?eve:day;
+  const ribs=(x0,x1,y0,y1,col,step)=>{for(let x=x0+1;x<x1;x+=step)R(x,y0,.35,y1-y0,col)};
+  /* 地面（駐車場のアスファルト） */
+  R(0,136,W,44,D2('#5b6153','#2b2f2e'));R(0,136,W,2,D2('#7f8a72','#3c4240'));R(30,137,250,23,D2('#8a8d8c','#3c3f41'));
+  /* 左はしの小さな建物（オレンジの屋根・白いかべ） */
+  R(38,118,34,18,D2('#e9e9e4','#77757e'));C.fillStyle=D2('#d9532e','#6b3326');C.beginPath();C.moveTo(34,119);C.lineTo(73,113);C.lineTo(73,117);C.lineTo(34,122);C.closePath();C.fill();
+  for(let y=121;y<136;y+=2.4)R(38,y,32,.3,D2('#c9cac6','#5f5d66'));
+  /* 左の建物（3階建て・波板） */
+  const LX=70,LR=178,LT=36;
+  R(LX,LT,LR-LX,136-LT,D2('#8f8189','#58515d'));R(LX,LT,LR-LX,2.2,D2('#b3a5ad','#6c6470'));ribs(LX,LR,LT+2,98,D2('rgba(60,45,55,.22)','rgba(20,15,25,.3)'),2.1);
+  R(LX,LT,3,136-LT,D2('rgba(255,255,255,.08)','rgba(255,255,255,.04)'));
+  /* 2階の窓（緑がかったガラス・白い枠） */
+  [86,110,134].forEach((x,i)=>{R(x-1,74,17,15,D2('#f2f2ef','#8a8794'));const lit=ev&&i!==1;R(x,75,15,13,lit?'#f6dd8c':D2('#8fcfb6','#3a4c58'));R(x+7.2,75,.6,13,D2('#f2f2ef','#8a8794'));
+    if(!lit){C.fillStyle='rgba(255,255,255,.22)';C.beginPath();C.moveTo(x+1,88);C.lineTo(x+5,75);C.lineTo(x+7,75);C.lineTo(x+3,88);C.closePath();C.fill()}});
+  R(128,46,3,3,D2('#5a4f57','#3a3440'));
+  /* 青いひさし */
+  C.fillStyle=D2('#4d6f86','#2f4250');C.beginPath();C.moveTo(64,97);C.lineTo(LR,95);C.lineTo(LR,98.5);C.lineTo(64,100.5);C.closePath();C.fill();R(64,100.5,LR-64,.6,D2('#2f4a5c','#1d2a33'));
+  /* 1階：暗い入口・白いシャッター・ドア */
+  R(LX,101,LR-LX,35,D2('#6f646c','#433d48'));R(LX+2,103,30,33,D2('#3f3a40','#24212a'));
+  R(106,104,46,32,D2('#eceeec','#8b8a92'));for(let y=106;y<136;y+=1.6)R(106,y,46,.3,D2('#c3c6c4','#6d6c74'));R(106,104,46,1.4,D2('#9da2a2','#5e5d66'));
+  R(93,112,9,24,D2('#5c3e2c','#3a2a22'));R(94,113,7,8,D2('#9fb7c4','#e3c47a'));
+  /* 右の建物（赤い波板・左の角が丸い） */
+  const RX=176,RR=262,RT=20,RB=106;
+  C.save();C.beginPath();C.moveTo(RX,RB);C.lineTo(RX,RT+10);C.quadraticCurveTo(RX,RT,RX+10,RT);C.lineTo(RR,RT);C.lineTo(RR,RB);C.closePath();C.clip();
+  const rg=C.createLinearGradient(RX,0,RR,0);rg.addColorStop(0,D2('#9e1216','#5c1216'));rg.addColorStop(.12,D2('#d01c22','#7c1a1e'));rg.addColorStop(.55,D2('#e2262b','#8a1f22'));rg.addColorStop(1,D2('#c71c21','#761a1d'));
+  C.fillStyle=rg;C.fillRect(RX,RT,RR-RX,RB-RT);ribs(RX,RR,RT,RB,D2('rgba(90,0,0,.25)','rgba(30,0,0,.35)'),2.1);
+  C.fillStyle=D2('rgba(255,255,255,.12)','rgba(255,255,255,.05)');C.fillRect(RX+4,RT,5,RB-RT);C.restore();
+  C.strokeStyle=D2('#f4f4f2','#9b98a2');C.lineWidth=.9;C.beginPath();C.moveTo(RX,RT+10);C.quadraticCurveTo(RX,RT,RX+10,RT);C.lineTo(RR,RT);C.stroke();
+  /* 奥へのびる右の面（少し暗い赤） */C.fillStyle=D2('#a8171c','#5e1417');C.beginPath();C.moveTo(RR,RT);C.lineTo(RR+6,RT+4);C.lineTo(RR+6,136);C.lineTo(RR,136);C.closePath();C.fill();
+  /* 白い「SUNYOU」の文字 */jt('SUNYOU',(RX+RR)/2+2,RT+3.5,ev?'#fff6d8':'#ffffff',9.5,'center');
+  /* 赤い建物の窓 */[[190,20],[226,22]].forEach(([x,w])=>{R(x-1,58,w+2,16,D2('#f2f2ef','#9b98a2'));R(x,59,w,14,ev?'#f6dd8c':D2('#4b5a66','#33404c'));R(x+w/2-.3,59,.6,14,D2('#f2f2ef','#9b98a2'));if(!ev){C.fillStyle='rgba(255,255,255,.2)';C.beginPath();C.moveTo(x+2,73);C.lineTo(x+7,59);C.lineTo(x+9,59);C.lineTo(x+4,73);C.closePath();C.fill()}});
+  R(RX,RB,RR-RX,1.2,D2('#f4f4f2','#9b98a2'));
+  /* 赤い建物の1階（灰色のかべ・ドア・窓・自動販売機） */
+  R(RX,RB+1.2,RR-RX,136-RB-1.2,D2('#a3a1a6','#5c5a63'));ribs(RX,RR,RB+1.2,136,D2('rgba(0,0,0,.1)','rgba(0,0,0,.2)'),2.1);
+  R(186,114,12,22,D2('#6a4a36','#3a2a22'));R(206,112,20,12,ev?'#e8c878':D2('#3b4650','#2a323b'));
+  R(232,117,9,19,D2('#f4f6f8','#9c9aa4'));R(233,119,7,8,D2('#c9372d','#7a2a24'));R(233.5,128,6,1.4,'#2a3038');
+  if(ev){const dg=C.createRadialGradient(192,136,2,192,136,30);dg.addColorStop(0,'rgba(255,220,140,.3)');dg.addColorStop(1,'rgba(255,220,140,0)');C.fillStyle=dg;C.fillRect(160,110,70,40)}
+  /* 松の木（手入れされた庭木） */
+  {const x=174,sw=rm?0:Math.sin(t*1.1)*.4;R(x-1,96,2.2,42,D2('#5a4130','#33261e'));
+    [[0,90,9,4.2],[-6,99,8,3.8],[6,105,8.5,3.8],[-4,113,9,4],[3,121,7.5,3.4]].forEach(([dx,y,rx,ry])=>{C.fillStyle=D2('#2f5d36','#1b3322');C.beginPath();C.ellipse(x+dx+sw,y,rx,ry,0,0,TAU);C.fill();C.fillStyle=D2('#41794a','#25432d');C.beginPath();C.ellipse(x+dx+sw-1,y-1.2,rx*.75,ry*.55,0,0,TAU);C.fill()})}
+  /* 白い軽トラック */
+  {const x=216,y=124,bd=D2('#f4f6f7','#a3a2aa'),sh=D2('#cdd2d6','#7e7d86');
+    R(x,y+3,30,8,bd);R(x,y+3,30,1,sh);R(x,y+10,30,1.2,sh);for(let k=1;k<4;k++)R(x+k*7.5,y+3.6,.4,6.4,sh);
+    C.fillStyle=bd;C.beginPath();C.moveTo(x+30,y+11);C.lineTo(x+30,y-2);C.lineTo(x+39,y-2);C.lineTo(x+44,y+5);C.lineTo(x+44,y+11);C.closePath();C.fill();
+    C.fillStyle=ev?'#e8c878':D2('#5f7f97','#3a4652');C.beginPath();C.moveTo(x+32,y);C.lineTo(x+38.5,y);C.lineTo(x+42.5,y+5);C.lineTo(x+32,y+5);C.closePath();C.fill();
+    R(x+30,y+11,14,1,sh);R(x+43,y+7,1.4,2,ev?'#fff0b8':'#f2c94c');
+    for(const wx of[x+8,x+37]){circ(wx,y+12,3.4,'#1c1f23');circ(wx,y+12,1.6,'#8d949b')}}
+  /* 道 */
   R(0,160,W,20,ev?'#34383b':'#6d7275');for(let x=-10;x<W;x+=28)R(x,169,14,1.6,ev?'#6b6f66':'#d9dcd2');
-  /* 植え込み・木 */
-  for(let x=58;x<130;x+=9)circ(x,136,5,ev?'#1f3a2a':'#3c7d4b');for(let x=192;x<266;x+=9)circ(x,136,5,ev?'#1f3a2a':'#3c7d4b');
+  /* まわりの木と街灯 */
   for(const x of[22,300]){const sw=rm?0:Math.sin(t*1.3+x)*.8;R(x-1.5,118,3,20,'#4a3524');circ(x+sw,108,14,ev?'#1c3024':'#2c6a3d');circ(x-5+sw,103,8,ev?'#274233':'#3b8650');circ(x+6+sw,112,7,ev?'#213a2b':'#347846')}
-  for(const x of[42,280]){R(x-.6,112,1.2,26,'#39424b');circ(x,111,2.4,ev?'#ffe9a8':'#dfe6ea');if(ev){const lg=C.createRadialGradient(x,112,1,x,112,22);lg.addColorStop(0,'rgba(255,233,168,.35)');lg.addColorStop(1,'rgba(255,233,168,0)');C.fillStyle=lg;C.fillRect(x-22,90,44,44)}}
+  for(const x of[42,284]){R(x-.6,112,1.2,26,'#39424b');circ(x,111,2.4,ev?'#ffe9a8':'#dfe6ea');if(ev){const lg=C.createRadialGradient(x,112,1,x,112,22);lg.addColorStop(0,'rgba(255,233,168,.35)');lg.addColorStop(1,'rgba(255,233,168,0)');C.fillStyle=lg;C.fillRect(x-22,90,44,44)}}
   /* さんぽぽ */
   if(this.mascot&&SANPO.complete&&SANPO.naturalWidth){const b=rm?0:Math.abs(Math.sin(t*3))*2.2;C.fillStyle='rgba(0,0,0,.28)';C.beginPath();C.ellipse(160,163,14-b,2.6,0,0,TAU);C.fill();C.imageSmoothingEnabled=true;C.drawImage(SANPO,134,124-b,52,41)}
 }};

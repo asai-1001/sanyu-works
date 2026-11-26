@@ -7,7 +7,7 @@
 (()=>{
 'use strict';
 const S=SW,D=S.DATA,T=S.T,esc=S.esc;
-S.VERSION='2.9.5';
+S.VERSION='2.9.6';
 const $=S.$;
 let curStage=null,curGame=null,mode=null,started=false;
 const results={};                                  /* results[作業id] = {clear,stars,used,miss} */
@@ -303,7 +303,7 @@ function showCertificate(){
   const L=S.lastRun;if(!L)return;
   let url='';try{url=drawCertificate(L).toDataURL('image/png')}catch(e){try{url=drawCertificate(L,true).toDataURL('image/png')}catch(e2){console.error(e2)}}
   const p=S.panel(`<div class="pin cert">
-    <div class="phead"><button type="button" class="btn ghost back" data-a="back">← もどる</button><h2>体験修了証</h2><span class="count">画像として保存して、記念に持ち帰れます</span></div>
+    <div class="phead"><button type="button" class="btn back" data-a="back"><span class="bk-ic" aria-hidden="true"></span>もどる<kbd class="bk-esc">Esc</kbd></button><h2>体験修了証</h2><span class="count">画像として保存して、記念に持ち帰れます</span></div>
     <div class="certbox">${url?`<img src="${url}" alt="体験修了証">`:'<div class="empty">修了証を作れませんでした。</div>'}</div>
     <div class="btnrow center">${url?`<a class="btn" download="三友ワークス_修了証.png" href="${url}">画像を保存する</a>`:''}</div></div>`,'pmenu');
   S.setHint('「画像を保存する」でPNG画像をダウンロードできます。');
@@ -335,7 +335,10 @@ function openHelp(){
 }
 $('btnPause').addEventListener('click',openPause);
 $('btnHelp').addEventListener('click',openHelp);
-S.onEscape=()=>{if(S.vlogBack){S.vlogBack();return}if(S.paused){S.paused=false;S.closePanel()}else openPause()};
+S.onEscape=()=>{if(S.vlogBack){S.vlogBack();return}
+  /* メニューの画面（職種カード・ずかん・設定など）では、Esc で「もどる」ボタンと同じ動き（Ver. 2.9.6） */
+  if(!curStage&&S.panelOpen()){const b=$('panel').querySelector('.phead .back');if(b){b.click();return}}
+  if(S.paused){S.paused=false;S.closePanel()}else openPause()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.vlogPlaying&&S.vlogPlaying()){const v=$('panel').querySelector('video');if(v)v.pause()}if(document.hidden&&started&&!S.tutActive)openPause()});
 
 /* ---------- キーボードだけでも、メニューやパネルのボタンをえらべるようにする ----------

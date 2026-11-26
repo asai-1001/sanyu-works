@@ -16,7 +16,8 @@ S.playerName='';S.atTitle=true;
 S.unlock=(kind,id)=>{const a=S.store.get(kind,[]);if(!a.includes(id)){a.push(id);S.store.set(kind,a);return true}return false};
 const owned=kind=>new Set(S.store.get(kind,[]));
 
-function back(){return '<button type="button" class="btn ghost back" data-a="title">← タイトルへ</button>'}
+/* もどるボタン（Ver. 2.9.6：大きく、矢印つきの形にして、パソコンでは Esc キーでももどれることを出す） */
+function back(){return '<button type="button" class="btn back" data-a="title"><span class="bk-ic" aria-hidden="true"></span>タイトルにもどる<kbd class="bk-esc">Esc</kbd></button>'}
 function wireBack(p){p.querySelectorAll('[data-a="title"]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showTitle()}))
   /* Ver. 2.9.4 試作：空の画面の「名前を入れて一日コースへ」ボタン → タイトルの名前の欄へ */
   p.querySelectorAll('[data-a="course"]').forEach(b=>b.addEventListener('click',()=>{S.sfx.blip();S.showTitle();S.focusSoon(document.getElementById('pname'))}))}
@@ -156,7 +157,7 @@ S.showBook=function(sel,fromFinal,opt){
      <div class="tabs bk-tabs" role="group" aria-label="表示する内容">${TABS.map(([k,l])=>`<button type="button" class="tab" data-tab="${k}" aria-pressed="${k===bookTab}">${l}</button>`).join('')}</div>
      <div class="bk-body">${body}</div>
      ${bookTab==='job'?'<p class="fine bk-src">出典：会社の募集職種の資料</p>':''}`;
-  const bk=fromFinal&&S.lastRun?'<button type="button" class="btn ghost back" data-a="final">← 成績へもどる</button>':back();
+  const bk=fromFinal&&S.lastRun?'<button type="button" class="btn back" data-a="final"><span class="bk-ic" aria-hidden="true"></span>成績にもどる<kbd class="bk-esc">Esc</kbd></button>':back();
   const p=S.panel(`<div class="pin">
     <div class="phead">${bk}<h2>職種カード</h2><span class="count">${got.size} / ${D.CARDS.length} 枚</span></div>
     <div class="split">
@@ -187,7 +188,7 @@ S.showVlog=function(st,onBack){
   S.setHint('動画をクリックするか「再生」で再生／一時停止。Esc か「もどる」で職種カードにもどります。');
   const name=staffName(st);
   const p=S.panel(`<div class="pin vlog">
-    <div class="phead"><button type="button" class="btn ghost back" data-a="vback">← もどる</button><h2>${esc(name)}のVlog</h2><span class="count">${esc([st.dept,st.role].filter(Boolean).join('　'))}</span></div>
+    <div class="phead"><button type="button" class="btn back" data-a="vback"><span class="bk-ic" aria-hidden="true"></span>もどる<kbd class="bk-esc">Esc</kbd></button><h2>${esc(name)}のVlog</h2><span class="count">${esc([st.dept,st.role].filter(Boolean).join('　'))}</span></div>
     <div class="vstage"><video playsinline preload="auto"></video>
       <div class="vover" data-s="load"><p>読みこみ中…</p></div></div>
     <div class="vbar">
@@ -255,7 +256,7 @@ S.showZukan=function(sel){
 S.showRanking=function(hl){
   idle();const list=S.store.get('rank',[]).slice(0,10);
   S.setHint('一日コースを最後まで遊ぶと、ここに記録されます。★が多い順、同じなら作業時間が短い順です。');
-  const bk=S.lastRun&&hl?'<button type="button" class="btn ghost back" data-a="final">← 成績へもどる</button>':back();
+  const bk=S.lastRun&&hl?'<button type="button" class="btn back" data-a="final"><span class="bk-ic" aria-hidden="true"></span>成績にもどる<kbd class="bk-esc">Esc</kbd></button>':back();
   const p=S.panel(`<div class="pin">
     <div class="phead">${bk}<h2>ランキング</h2><span class="count">この端末の一日コース（★ ${S.STAGES.length*3} が満点）</span></div>
     ${list.length?`<div class="tablebox"><table><thead><tr><th>順位</th><th>なまえ</th><th class="num">★</th><th class="num">クリア</th><th class="num">作業時間</th><th>称号</th><th>適職診断</th><th>日付</th></tr></thead><tbody>${
@@ -337,7 +338,7 @@ S.showStaff=function(){
     const comments=txtQ.map(q=>{const all=list.filter(r=>{const v=(r.answers||{})[q.id];return typeof v==='string'&&v.trim()}).sort((a,b)=>String(b.answeredAt||'').localeCompare(String(a.answeredAt||'')));
       return `<div class="tally"><p class="get-k">${esc(q.csv||q.q)}　<small>${all.length} 件${all.length>5?'（新しい5件を表示）':''}</small></p>${all.length?`<ul class="cmts">${all.slice(0,5).map(r=>`<li><time>${esc(when(r.answeredAt))}</time><p>${esc(r.answers[q.id])}</p></li>`).join('')}</ul>`:'<p>—</p>'}</div>`}).join('');
     const p=S.panel(`<div class="pin">
-      <div class="phead"><button type="button" class="btn ghost back" data-a="set">← 設定へ</button><h2>スタッフメニュー</h2><span class="count">アンケート回答 ${n} 件${scores.length?`　★の平均 ${(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1)}`:''}</span></div>
+      <div class="phead"><button type="button" class="btn back" data-a="set"><span class="bk-ic" aria-hidden="true"></span>設定にもどる<kbd class="bk-esc">Esc</kbd></button><h2>スタッフメニュー</h2><span class="count">アンケート回答 ${n} 件${scores.length?`　★の平均 ${(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1)}`:''}</span></div>
       <div class="split staff">
         <div class="detail"><p class="get-k">理解度（5点満点の平均）</p><div class="bars">${scaleRows}</div>${single}${comments}</div>
         <div class="detail">

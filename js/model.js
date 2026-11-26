@@ -78,11 +78,14 @@ const TRS=(t,r,s)=>M.chain(M.t(...t),r||M.id(),M.s(...s));
    explode     0〜1。部品をばらして見せる
    screws      土台のねじの数（0〜4）
    marks       [{a:向き(度), y:高さ, k:'scratch'|'dirt'}]  キズ・よごれ
-   ghost       うすく表示する（これから作る形のお手本用） */
+   ghost       うすく表示する（これから作る形のお手本用）
+   tool        {x,y,z,spin,chips:[{x,y,z,k}]}  加工中のエンドミル（Ver. 2.9.6）。x,y,z は刃先の位置。
+               3Dの中に描くので、材料の中に入った刃先や、さんぽぽの裏に回ったところは隠れる */
 function list(o){
   o=o||{};const out=[],root=M.mul(M.ry(o.yaw||0),M.rx(o.pitch||0)),ex=o.explode||0,al=o.ghost?.34:1;
   /* ghost（お手本・まだ作っていない形）は、図面のような水色の半透明で描く */
   const add=(m,Ml,col,metal,extra)=>out.push(Object.assign({m:mesh[m],M:M.mul(root,Ml),col:o.ghost?COL.ghost:col,metal:o.ghost?0:metal,alpha:al},extra||{},o.ghost?{emis:.45}:null));
+  if(o.tool)toolObjs(o.tool,out);
   const clipTop=o.cut!=null&&o.cut<1?{clip:(()=>{const yc=1.15-o.cut*2.5;const n=[root[4],root[5],root[6]];return[n[0],n[1],n[2],-yc]})()}:null;
   if(o.block||clipTop){const yc=clipTop?1.15-o.cut*2.5:9;
     out.push({m:mesh.box,M:M.mul(root,TRS([0,-.1,0],null,[2.5,2.45,2.1])),col:COL.alu,metal:.7,alpha:1,clip:clipTop?[-root[4],-root[5],-root[6],yc]:null});
@@ -106,6 +109,21 @@ function list(o){
     const Mm=M.chain(M.t(x*1.005,y,z*1.005),M.ry(a),mk.k==='dirt'?M.s(.11,.09,.02):M.chain(M.rz(.6),M.s(.2,.022,.02)));
     out.push({m:mesh.sphere,M:M.mul(root,Mm),col:mk.k==='dirt'?COL.dirt:[.98,.95,.85],metal:mk.k==='dirt'?0:.2,emis:mk.k==='dirt'?0:.5,alpha:1})});
   return out}
+
+/* エンドミル（Φ10・4枚刃）とホルダー・主軸。工作物と別に、機械に固定された向きで描く */
+function toolObjs(T,out){const x=T.x,y=T.y,z=T.z,sp=T.spin||0,R=.13;
+  const at=(cx,cy,cz,r,h,col,metal,rot)=>out.push({m:mesh.cyl,M:M.chain(M.t(cx,cy,cz),rot||M.id(),M.s(r,h,r)),col,metal,alpha:1});
+  /* 刃の部分：芯と、回っている4枚の刃（ねじれた帯を、高さごとに少しずつ回して表す） */
+  at(x,y+.3,z,R*.78,.6,[.55,.58,.62],.95);
+  for(let k=0;k<6;k++){const yy=y+.05+k*.1;for(let f=0;f<2;f++)out.push({m:mesh.box,M:M.chain(M.t(x,yy,z),M.ry(sp+f*Math.PI/2+k*.45),M.s(R*2,.085,R*.42)),col:[.82,.85,.9],metal:.95,alpha:1})}
+  /* シャンク（つかむところ）・ホルダー・主軸 */
+  at(x,y+.85,z,R,.5,[.78,.8,.84],.95);
+  at(x,y+1.22,z,R*1.7,.25,[.3,.33,.37],.8);
+  at(x,y+1.5,z,R*2.2,.32,[.22,.24,.27],.7);
+  at(x,y+1.68,z,R*2.35,.04,[.96,.76,.11],.4);
+  at(x,y+4.66,z,R*2.6,5.9,[.2,.22,.25],.6);
+  /* 削りくず（黄銅）と切削液 */
+  (T.chips||[]).forEach(p=>out.push({m:mesh.sphere,M:M.chain(M.t(p.x,p.y,p.z),M.s(p.k?.022:.032,p.k?.022:.018,p.k?.022:.032)),col:p.k?[.6,.85,1]:[.98,.8,.3],metal:p.k?.1:.9,emis:p.k?.35:.1,alpha:1}))}
 
 /* ゲーム画面の (x,y,w,h) に描く。3Dが使えない端末では、さんぽぽの絵で代用する */
 function draw(C,x,y,w,h,o){

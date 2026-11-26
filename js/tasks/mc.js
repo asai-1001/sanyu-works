@@ -34,6 +34,7 @@ function MachineGame(){
       if(k==='ArrowUp'||k==='ArrowDown'){fast=!fast;S.sfx.tick();return true}
       if(k==='Enter'||k===' '){reg(g);return true}return false},
     update(g,dt){
+      mcUpdate(dt);
       if(ph===1){if(g.held()){torque=Math.min(100,torque+42*dt);wasHeld=true;if(Math.random()<dt*14)S.sfx.tick()}
         else if(wasHeld){wasHeld=false;if(torque>75){g.miss1('締めすぎ！ 材料がゆがんでしまう。緑のところで手をはなそう。');torque=25}else if(torque>=60){g.good('ちょうどいい固定！');enter(g,2)}else S.toast('まだゆるいよ。緑のところまで締めよう。','',2500)}}
       if(ph===4){cut=Math.min(1,cut+dt/5.5);spark+=dt;if(spark>.12){spark=0;S.noise(.08,.02,1800+Math.random()*1500)}
@@ -177,14 +178,27 @@ function MachineGame(){
       c.restore();ring(ix,iy,ir,'#7f8e9c',null,.7);
     jt(gap>0?'すき間 '+gap.toFixed(2)+' mm':'ふれた',ix,iy+ir+1.5,gap>0?'#c7d2dc':P.acc,4.4,'center');jt('拡大',ix-ir-7,iy-3,'#7f8e9c',3.8)}
   /* 加工中のマシニングセンタ（扉の窓ごしに見る） */
+  /* 加工中（Ver. 2.9.6）：エンドミルを3Dの中に描く。刃先は「いま削っている高さ」にあり、さんぽぽのまわりを回りながら材料を削る。
+     刃先が材料の中に入ったところや、さんぽぽの裏に回ったところは、3Dなので自然に隠れる */
+  let mcT=0,mcChips=[],mcEmit=0;
+  const cutY=()=>1.15-Math.min(1,cut)*2.5+.02;              /* いま削っている高さ（model.js の cut と同じ式） */
+  function toolPos(){
+    if(ph===3)return{x:.95,y:1.55,z:.75};
+    if(ph===5)return{x:.95,y:Math.min(1.6,cutY()+mcT*0),z:.75};
+    const y=cutY();
+    /* 刃先より上の部分（刃・シャンクは細く、ホルダーと主軸は太い）が、さんぽぽに当たらない距離 r0 */
+    const sr=h=>Math.sqrt(Math.max(0,1-(h/(60/65))**2)),mx=(a,b)=>a<=0&&b>=0?1:Math.max(sr(a),sr(b));
+    const r0=Math.max(mx(y,y+1.1)+.17,mx(y+1.1,9)+.38),r1=Math.max(r0,1.12),ph_=1.45+1.05*Math.sin(mcT*1.1),rad=r0+(r1-r0)*(.5+.5*Math.sin(mcT*.83+1));   /* 右側を前後に行き来する。奥へ回ると、さんぽぽに隠れる */
+    return{x:Math.sin(ph_)*rad,y:y-.04,z:Math.cos(ph_)*rad}}
+  function mcUpdate(dt){mcT+=dt;
+    if(ph===4&&!S.reduceMotion){mcEmit+=dt;const tp=toolPos();
+      while(mcEmit>.035){mcEmit-=.035;const a=Math.random()*TAU,k=Math.random()<.3?1:0;
+        mcChips.push({x:tp.x+Math.cos(a)*.16,y:tp.y+.04,z:tp.z+Math.sin(a)*.16,vx:Math.cos(a)*(1.2+Math.random()*1.6),vy:1+Math.random()*1.6,vz:Math.sin(a)*(1.2+Math.random()*1.6),life:.45+Math.random()*.35,k})}}
+    mcChips.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.vy-=7*dt;p.life-=dt});mcChips=mcChips.filter(p=>p.life>0&&p.y>-1.6)}
   function drawEnclosure(c,t){const bgG=Mt.vGrad(c,20,132,['#1b2633','#0a1018']);c.fillStyle=bgG;c.fillRect(128,20,182,112);
-    S.Sanpo.draw(c,160,26,118,104,{yaw:.5+t*.25,cut:ph===3?0:cut,block:ph===3,spikes:0,face:false,limbs:false,eyes:0,dist:8.2,ty:-.1});
-    const tyB=ph===4?40+cut*62:30,x=219;
-    /* 主軸ヘッド */c.fillStyle=Mt.cylGrad(c,x-9,x+9,['#1d232a','#4d5864','#8796a5','#3c4651','#1a1f25']);c.fillRect(x-9,20,18,tyB-20);c.fillStyle='rgba(246,194,28,.6)';c.fillRect(x-9,tyB-9,18,1.2);c.fillStyle=Mt.cylGrad(c,x-7,x+7,Mt.DARK);c.fillRect(x-7,tyB-4,14,4);
-    Mt.shank(c,x-5,tyB,10,5,{cols:['#3a424b','#8a95a0','#c9d1d8','#6d7884','#2f363e']});
-    Mt.shank(c,x-3,tyB+5,6,6,{spin:t,rpm:14});Mt.flutes(c,x-3,tyB+11,6,11,{n:4,spin:ph===4?t:null,rpm:6});
-    if(ph===4&&!S.reduceMotion){/* 切削液と、とびちる切りくず */for(let i=0;i<10;i++){const a=Math.random()*TAU,d=Math.random()*12;circ(x+Math.cos(a)*d,tyB+22+Math.sin(a)*3,.5,'rgba(150,210,255,.55)')}
-      for(let i=0;i<5;i++){const a=Math.random()*Math.PI,d=6+Math.random()*16;c.save();c.translate(x+Math.cos(a)*d*(Math.random()<.5?-1:1),tyB+20-Math.sin(a)*d*.5);c.rotate(Math.random()*TAU);c.strokeStyle='#f3cf6a';c.lineWidth=.4;c.beginPath();c.arc(0,0,1,0,4);c.stroke();c.restore()}}
+    const tp=toolPos();
+    S.Sanpo.draw(c,160,22,118,110,{yaw:.5+t*.18,cut:ph===3?0:cut,block:ph===3,spikes:0,face:false,limbs:false,eyes:0,dist:8.6,ty:.1,camPitch:.32,
+      tool:Object.assign(tp,{spin:ph===4?t*40:0,chips:mcChips})});
     /* 扉のガラス（映りこみ） */c.save();c.strokeStyle='#3d4b5a';c.lineWidth=2.4;c.strokeRect(129.5,21.5,179,109);c.globalAlpha=.06;c.fillStyle='#ffffff';c.beginPath();c.moveTo(150,22);c.lineTo(178,22);c.lineTo(140,130);c.lineTo(129,130);c.lineTo(129,74);c.closePath();c.fill();c.beginPath();c.moveTo(186,22);c.lineTo(194,22);c.lineTo(156,130);c.lineTo(148,130);c.closePath();c.fill();c.restore()}
   /* バリ：ふちから外へはみ出した、うすい金属のめくれ */
   function drawBurr(c,b){const n=b.hp,base=BR-1.5;c.save();
@@ -284,13 +298,21 @@ function MeasureGame(){
     c.strokeStyle='rgba(40,46,54,.6)';c.lineWidth=.3;c.stroke();c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=.35;c.beginPath();c.moveTo(x,y0+9);c.lineTo(x,y1-6);c.stroke();c.restore()}
   function drawBall(c,x,y,r){c.save();c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(x+2,y+r*.95,r*.8,r*.18,0,0,TAU);c.fill();
     const gr=c.createRadialGradient(x-r*.35,y-r*.4,r*.05,x,y,r);gr.addColorStop(0,'#fff6cf');gr.addColorStop(.25,'#f6cf63');gr.addColorStop(.7,'#c58f22');gr.addColorStop(1,'#6e4a0c');c.fillStyle=gr;c.beginPath();c.arc(x,y,r,0,TAU);c.fill();
-    c.globalAlpha=.25;c.strokeStyle='#fff3c8';c.lineWidth=.25;for(let k=1;k<6;k++){c.beginPath();c.ellipse(x,y,r*k/6,r,0,0,TAU);c.stroke()}c.restore()}
+    /* 光の映りこみ（Ver. 2.9.6：縦の線をやめて、みがいた黄銅のつやだけにした） */
+    const hl=c.createRadialGradient(x-r*.38,y-r*.42,0,x-r*.38,y-r*.42,r*.38);hl.addColorStop(0,'rgba(255,255,240,.85)');hl.addColorStop(1,'rgba(255,255,240,0)');c.fillStyle=hl;c.beginPath();c.arc(x,y,r,0,TAU);c.fill();
+    c.strokeStyle='rgba(110,74,12,.55)';c.lineWidth=.35;c.beginPath();c.arc(x,y,r,0,TAU);c.stroke();c.restore()}
   /* マイクロメータ：アンビル（左）とスピンドル（右）ではさむ。フレームはC字形 */
   function drawMicrometer(c,t,px0,px1,jx,hw){const cy=50,Fx=px1+22;
     /* フレーム */c.save();c.fillStyle=Mt.vGrad(c,44,82,['#3f5f8a','#2b4466','#1d3049']);c.beginPath();c.moveTo(px0-14,44);c.lineTo(px0-6,44);c.lineTo(px0-6,56);c.quadraticCurveTo(px0-6,74,px0+hw,76);c.lineTo(Fx-18,76);c.quadraticCurveTo(Fx,76,Fx,58);c.lineTo(Fx,46);c.lineTo(Fx+8,46);c.lineTo(Fx+8,62);c.quadraticCurveTo(Fx+8,84,Fx-18,84);c.lineTo(px0+hw,84);c.quadraticCurveTo(px0-14,84,px0-14,58);c.closePath();c.fill();
       c.strokeStyle='rgba(10,16,26,.7)';c.lineWidth=.35;c.stroke();c.fillStyle='rgba(220,230,240,.12)';c.fillRect(px0+hw-14,77,28,5);c.restore();
     /* アンビル */c.fillStyle=Mt.vGrad(c,cy-4,cy+4,Mt.STEEL);c.fillRect(px0-6,cy-4,6,8);
-    /* 部品（三角パーツ・銅色）を横から */c.save();const gr=Mt.cylGrad(c,px0,px1,['#7a2a10','#e0663a','#ffb08a','#c84a22','#6a240e']);c.fillStyle=gr;c.beginPath();c.moveTo(px0,cy+12);c.lineTo(px1,cy+12);c.lineTo(px0+hw,cy-22);c.closePath();c.fill();c.strokeStyle='rgba(70,20,6,.8)';c.lineWidth=.35;c.stroke();c.restore();
+    /* 部品（三角パーツ・銅色）を真横から見たところ（Ver. 2.9.6）。厚さを測るので、板のふちを、アンビルとスピンドルで両側からはさむ。
+       奥へのびる三角の面を、右にすこしだけ見せる */
+    c.save();const top=cy-24,bot=cy+15;
+    c.fillStyle='#8a3a18';c.beginPath();c.moveTo(px1,top+3);c.lineTo(px1+5,top+9);c.lineTo(px1+5,bot-4);c.lineTo(px1,bot);c.closePath();c.fill();   /* 奥へのびる三角の面（ななめ） */
+    const gr=Mt.cylGrad(c,px0,px1,['#7a2a10','#e0663a','#ffb08a','#c84a22','#6a240e']);c.fillStyle=gr;c.beginPath();c.moveTo(px0,bot);c.lineTo(px1,bot);c.lineTo(px1,top+3);c.lineTo(px0,top+3);c.closePath();c.fill();
+    c.strokeStyle='rgba(70,20,6,.8)';c.lineWidth=.35;c.stroke();c.strokeStyle='rgba(255,220,200,.5)';c.lineWidth=.3;line(px0+hw*.55,top+3,px0+hw*.55,bot-1,'rgba(255,225,205,.45)',.4);
+    c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(px0+hw+2,bot+1.5,hw*1.1,1.6,0,0,TAU);c.fill();c.restore();
     /* スピンドル・スリーブ・シンブル・ラチェット */c.fillStyle=Mt.vGrad(c,cy-4,cy+4,Mt.STEEL);c.fillRect(jx,cy-4,Math.max(0,Fx-jx),8);
     const sx=Fx+8;c.fillStyle=Mt.vGrad(c,cy-5.5,cy+5.5,['#dde3e8','#f6f8fa','#a9b2bb']);c.fillRect(sx,cy-5.5,22,11);line(sx,cy,sx+22,cy,'#2b333b',.35);for(let k=0;k<=10;k++)line(sx+1+k*2,cy,sx+1+k*2,cy-(k%5?1.6:2.6),'#2b333b',.25);
     const tx=sx+10+jaw*10;c.fillStyle=Mt.vGrad(c,cy-7,cy+7,['#c9d0d6','#f3f6f8','#8f99a3']);c.fillRect(tx,cy-7,18,14);for(let k=0;k<9;k++)line(tx+.6,cy-7+k*1.75,tx+3,cy-7+k*1.75,'#2b333b',.25);
